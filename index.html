@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Print Costing & Quotation Agent — Harshana Printers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#121310;
+    --panel:#1b1c17;
+    --panel2:#212217;
+    --panel3:#282a1d;
+    --line:#33352b;
+    --cyan:#22b8c4;
+    --magenta:#d6336c;
+    --yellow:#e0b020;
+    --paper:#f2f0e6;
+    --muted:#96958a;
+    --danger:#e0554a;
+    --success:#2ecc71;
+    --whatsapp:#25d366;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1220px;margin:0 auto;padding:18px 20px 60px;}
+  .head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;margin-bottom:16px;gap:12px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .dots{display:flex;gap:5px;}
+  .dot{width:10px;height:10px;border-radius:50%;}
+  .brand h1{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin:0;letter-spacing:.2px;}
+  .brand p{margin:2px 0 0;font-size:12px;color:var(--muted);}
+  .headbtns{display:flex;gap:8px;}
+  .iconbtn{
+    background:transparent;border:1px solid var(--line);color:var(--paper);
+    border-radius:8px;padding:7px 12px;font-size:12px;font-family:'Inter';
+    cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s ease;
+  }
+  .iconbtn:hover{border-color:var(--cyan);color:var(--cyan);}
+  .grid{display:grid;grid-template-columns:1.45fr 1fr;gap:16px;align-items:start;}
+  @media (max-width:980px){.grid{grid-template-columns:1fr;}}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .panelhead{padding:12px 16px;border-bottom:1px solid var(--line);font-family:'Space Grotesk';font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .panelhead span.sub{font-family:'Inter';font-weight:400;color:var(--muted);font-size:11px;}
+
+  /* Tab switchers */
+  .mode-tabs{display:flex;gap:6px;}
+  .tab-btn{
+    background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+    border-radius:6px;padding:5px 12px;font-size:12px;font-family:'Space Grotesk';
+    font-weight:600;cursor:pointer;transition:all .15s;
+  }
+  .tab-btn.active{
+    background:var(--cyan);color:#0a2226;border-color:var(--cyan);
+  }
+  .tab-btn:hover:not(.active){
+    color:var(--paper);border-color:var(--muted);
+  }
+
+  /* Chat elements */
+  .chatlog{height:540px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+  .msg{max-width:90%;padding:10px 13px;border-radius:10px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;}
+  .msg.user{align-self:flex-end;background:var(--cyan);color:#0a2226;border-bottom-right-radius:2px;}
+  .msg.agent{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:2px;}
+  .msg.agent b{color:var(--yellow);}
+  .msg.agent a{color:var(--cyan);text-decoration:underline;}
+  .typing{align-self:flex-start;color:var(--muted);font-size:12px;padding:2px 4px;}
+
+  .inputrow{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line);}
+  .inputrow textarea{
+    flex:1;resize:none;background:var(--panel2);border:1px solid var(--line);color:var(--paper);
+    border-radius:8px;padding:10px 12px;font-family:'Inter';font-size:13.5px;min-height:42px;max-height:120px;
+  }
+  .inputrow textarea:focus{outline:none;border-color:var(--cyan);}
+  .sendbtn{
+    background:var(--cyan);color:#0a2226;border:none;border-radius:8px;padding:0 18px;
+    font-family:'Space Grotesk';font-weight:600;font-size:13px;cursor:pointer;transition:opacity .15s;
+  }
+  .sendbtn:disabled{opacity:.5;cursor:default;}
+
+  /* Calculator View */
+  .calc-container{padding:16px;display:flex;flex-direction:column;gap:14px;}
+  .calc-card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px;}
+  .calc-card-title{font-family:'Space Grotesk';font-size:12.5px;font-weight:600;color:var(--yellow);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+  .badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:'IBM Plex Mono';font-weight:600;text-transform:uppercase;}
+  .badge-k3{background:rgba(34,184,196,0.18);color:var(--cyan);border:1px solid var(--cyan);}
+  .badge-k2{background:rgba(214,51,108,0.18);color:var(--magenta);border:1px solid var(--magenta);}
+  .badge-warn{background:rgba(224,85,74,0.18);color:var(--danger);border:1px solid var(--danger);}
+
+  .form-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:10px;}
+  .form-col{display:flex;flex-direction:column;gap:4px;}
+  .form-col label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:500;}
+  .form-col input, .form-col select{
+    background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:6px;
+    padding:7px 9px;font-size:13px;font-family:'Inter';
+  }
+  .form-col input[type="number"], .form-col input.mono{font-family:'IBM Plex Mono';}
+  .form-col input:focus, .form-col select:focus{outline:none;border-color:var(--cyan);}
+  
+  .pill-group{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);padding:3px;border-radius:6px;}
+  .pill-btn{
+    flex:1;background:transparent;border:none;color:var(--muted);border-radius:4px;
+    padding:5px 6px;font-size:11px;font-family:'Space Grotesk';cursor:pointer;text-align:center;transition:all .15s;
+  }
+  .pill-btn.active{background:var(--cyan);color:#0a2226;font-weight:600;}
+
+  /* Sets container */
+  .set-box{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:12px;margin-bottom:10px;position:relative;}
+  .set-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;font-family:'Space Grotesk';font-weight:600;}
+  .set-del{background:transparent;border:none;color:var(--danger);font-size:16px;cursor:pointer;padding:0 4px;}
+  .btn-addset{
+    background:transparent;border:1px dashed var(--cyan);color:var(--cyan);
+    border-radius:6px;padding:7px 12px;font-size:12px;cursor:pointer;width:100%;font-family:'Space Grotesk';
+    transition:background .15s;
+  }
+  .btn-addset:hover{background:rgba(34,184,196,0.1);}
+
+  /* Options list */
+  .check-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:8px;}
+  .check-label{display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;color:var(--paper);}
+  .check-label input[type="checkbox"]{accent-color:var(--cyan);cursor:pointer;}
+
+  /* Live formula breakdown */
+  .calc-breakdown{
+    background:var(--panel3);border:1px solid var(--line);border-radius:8px;padding:12px;
+    font-family:'IBM Plex Mono';font-size:11.5px;color:var(--paper);line-height:1.6;
+  }
+  .calc-breakdown .h{color:var(--yellow);font-weight:600;margin-bottom:4px;display:flex;justify-content:space-between;}
+  .calc-breakdown .step{display:flex;justify-content:space-between;border-bottom:1px dashed rgba(255,255,255,0.08);padding:3px 0;}
+  .calc-breakdown .total{font-weight:600;color:var(--cyan);border-top:1px solid var(--line);margin-top:6px;padding-top:4px;}
+
+  /* Job docket */
+  .docket{padding:16px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;position:relative;min-height:200px;background:var(--panel2);}
+  .docket .empty{color:var(--muted);font-size:12.5px;padding:24px 4px;text-align:center;}
+  .crop{position:absolute;width:10px;height:10px;}
+  .crop::before,.crop::after{content:'';position:absolute;background:var(--line);}
+  .crop::before{width:10px;height:1px;top:5px;}
+  .crop::after{width:1px;height:10px;left:5px;}
+  .crop.tl{top:6px;left:6px;} .crop.tr{top:6px;right:6px;} .crop.bl{bottom:6px;left:6px;} .crop.br{bottom:6px;right:6px;}
+
+  .drow{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--line);}
+  .drow .l{color:var(--muted);}
+  .drow .r{text-align:right;}
+  .dtotal{display:flex;justify-content:space-between;padding-top:10px;margin-top:6px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:var(--yellow);}
+  .djob{font-family:'Space Grotesk';font-size:14px;font-weight:600;margin-bottom:10px;color:var(--paper);}
+  .dactions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .dactions button{
+    flex:1;font-family:'Inter';font-size:11.5px;padding:8px 10px;border-radius:6px;border:1px solid var(--line);
+    background:transparent;color:var(--paper);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:all .15s;
+  }
+  .dactions button:hover{border-color:var(--cyan);color:var(--cyan);}
+  .dactions button.primary{background:var(--cyan);color:#0a2226;border-color:var(--cyan);font-weight:600;}
+  .dactions button.primary:hover{opacity:.9;}
+
+  /* WhatsApp card */
+  .whatsapp-card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;margin-top:14px;}
+  .whatsapp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .whatsapp-title{font-family:'Space Grotesk';font-size:12px;font-weight:600;color:var(--whatsapp);display:flex;align-items:center;gap:6px;}
+  .whatsapp-box{
+    background:#0d1418;border:1px solid #1f2c34;border-left:3px solid var(--whatsapp);
+    border-radius:6px;padding:10px 12px;font-family:'IBM Plex Mono';font-size:12px;line-height:1.5;white-space:pre-wrap;color:#e9edef;
+  }
+  .btn-wa-copy{
+    background:var(--whatsapp);color:#0b141a;border:none;border-radius:6px;padding:6px 12px;
+    font-size:11.5px;font-family:'Space Grotesk';font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;
+  }
+
+  .histlist{max-height:220px;overflow-y:auto;}
+  .histitem{padding:9px 16px;border-bottom:1px solid var(--line);cursor:pointer;font-size:12px;display:flex;justify-content:space-between;transition:background .15s;}
+  .histitem:hover{background:var(--panel2);}
+  .histitem .r{color:var(--yellow);font-family:'IBM Plex Mono';}
+  .histitem .l small{display:block;color:var(--muted);font-size:10px;margin-top:2px;}
+
+  /* settings modal */
+  .modalbg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:30px 16px;overflow-y:auto;}
+  .modalbg.open{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:10px;max-width:680px;width:100%;padding:22px;}
+  .modal h2{font-family:'Space Grotesk';font-size:16px;margin:0 0 4px;}
+  .modal p.hint{color:var(--muted);font-size:12px;margin:0 0 16px;}
+  .rcrow{display:grid;grid-template-columns:1.6fr 1fr 0.9fr 28px;gap:6px;margin-bottom:6px;align-items:center;}
+  .rcrow input{background:var(--panel2);border:1px solid var(--line);color:var(--paper);border-radius:6px;padding:6px 8px;font-size:12.5px;font-family:'IBM Plex Mono';}
+  .rcrow button{background:transparent;border:none;color:var(--danger);cursor:pointer;font-size:15px;}
+  .rchead{display:grid;grid-template-columns:1.6fr 1fr 0.9fr 28px;gap:6px;font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+  .machrow{display:grid;grid-template-columns:1fr 2fr 28px;gap:6px;margin-bottom:6px;align-items:center;}
+  .machrow input{background:var(--panel2);border:1px solid var(--line);color:var(--paper);border-radius:6px;padding:6px 8px;font-size:12.5px;font-family:'IBM Plex Mono';}
+  .machrow button{background:transparent;border:none;color:var(--danger);cursor:pointer;font-size:15px;}
+  .modalfoot{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px;flex-wrap:wrap;}
+  .addrow{background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;margin-top:4px;}
+  .settingsgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px;}
+  .settingsgrid label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .settingsgrid input, .settingsgrid select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--paper);border-radius:6px;padding:7px 8px;font-family:'IBM Plex Mono';font-size:12.5px;}
+  .modalclose{background:var(--cyan);color:#0a2226;border:none;border-radius:8px;padding:8px 18px;font-family:'Space Grotesk';font-weight:600;font-size:13px;cursor:pointer;}
+  .savedflag{font-size:11.5px;color:var(--success);}
+
+  /* Toast Notification */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--cyan);color:#0a2226;padding:10px 18px;border-radius:8px;font-weight:600;font-size:13px;font-family:'Space Grotesk';box-shadow:0 8px 24px rgba(0,0,0,0.5);opacity:0;transform:translateY(10px);transition:all .2s ease;pointer-events:none;z-index:99;}
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  /* Print Stylesheet */
+  @media print {
+    body { background: #fff !important; color: #000 !important; }
+    .head, .headbtns, .panelhead, .chatlog, .inputrow, .calc-container, .whatsapp-card, .histlist, .dactions, .modalbg, .mode-tabs {
+      display: none !important;
+    }
+    .wrap { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    .grid { display: block !important; }
+    .panel { border: none !important; background: transparent !important; }
+    .docket {
+      border: 2px solid #000 !important;
+      color: #000 !important;
+      padding: 30px !important;
+      font-size: 13.5px !important;
+      background: #fff !important;
+      page-break-inside: avoid;
+    }
+    .docket::before {
+      content: "HARSHANA PRINTERS — ESTIMATION / JOB DOCKET";
+      display: block;
+      font-family: sans-serif;
+      font-size: 16px;
+      font-weight: bold;
+      border-bottom: 2px solid #000;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+    }
+    .drow { border-bottom: 1px dashed #666 !important; color: #000 !important; padding: 6px 0 !important; }
+    .drow .l { color: #222 !important; font-weight: 500; }
+    .drow .r { color: #000 !important; font-weight: 600; }
+    .dtotal { border-top: 2px solid #000 !important; color: #000 !important; font-size: 18px !important; margin-top: 12px !important; padding-top: 10px !important; }
+    .crop::before, .crop::after { background: #000 !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <div class="brand">
+      <div class="dots">
+        <div class="dot" style="background:var(--cyan)"></div>
+        <div class="dot" style="background:var(--magenta)"></div>
+        <div class="dot" style="background:var(--yellow)"></div>
+        <div class="dot" style="background:var(--paper)"></div>
+      </div>
+      <div>
+        <h1>Print costing & quotation agent</h1>
+        <p>Harshana Printers &nbsp;&middot;&nbsp; Offset Commercial Printing &nbsp;&middot;&nbsp; LKR</p>
+      </div>
+    </div>
+    <div class="headbtns">
+      <button class="iconbtn" id="btn-settings">⚙️ Rate card & Settings</button>
+      <button class="iconbtn" id="btn-clear">🧹 Reset / New chat</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Left Column: Mode Tabs (Calculator vs AI Chat) -->
+    <div class="panel">
+      <div class="panelhead">
+        <div class="mode-tabs">
+          <button class="tab-btn active" id="tab-calc">⚡ Instant Calculator</button>
+          <button class="tab-btn" id="tab-chat">💬 AI Assistant</button>
+        </div>
+        <span class="sub" id="mode-subtitle">Deterministic 100% accurate offset math</span>
+      </div>
+
+      <!-- VIEW 1: Deterministic Calculator -->
+      <div id="view-calc" class="calc-container">
+        
+        <!-- Job Basics Card -->
+        <div class="calc-card">
+          <div class="calc-card-title">
+            <span>1. Job & Client Details</span>
+            <span id="detected-machine-badge" class="badge badge-k3">Machine: K3 (24x18)</span>
+          </div>
+          <div class="form-row">
+            <div class="form-col" style="flex:1.2;">
+              <label>Client Name</label>
+              <input type="text" id="calc-client" value="ABC Traders" placeholder="e.g. ABC Traders">
+            </div>
+            <div class="form-col" style="flex:1.5;">
+              <label>Job Description / Item</label>
+              <input type="text" id="calc-jobname" value="A5 leaflets 100gsm Art Paper" placeholder="e.g. A5 leaflets, Brochures">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-col">
+              <label>Material Type</label>
+              <select id="calc-material">
+                <option value="Art paper" selected>Art paper (24"x36" full sheet)</option>
+                <option value="Ivory board">Ivory board (31"x43" full sheet)</option>
+                <option value="Art board">Art board (25"x40" full sheet)</option>
+                <option value="Sticker paper">Sticker paper</option>
+                <option value="Bond paper">Bond paper (A4 / 80gsm)</option>
+              </select>
+            </div>
+            <div class="form-col">
+              <label>Paper Sourcing</label>
+              <select id="calc-papersource">
+                <option value="client" selected>Client Supplied (Default — Plates & Print only)</option>
+                <option value="harshana">Harshana Printers Supplied (Include paper cost)</option>
+              </select>
+            </div>
+            <div class="form-col" id="col-papercost" style="display:none;">
+              <label>Paper Cost / Full Sheet (LKR)</label>
+              <input type="number" id="calc-papercost" value="25" min="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Sizing & Machine Card -->
+        <div class="calc-card">
+          <div class="calc-card-title">2. Sheet Sizing & Imposition</div>
+          <div class="form-row">
+            <div class="form-col">
+              <label>Job Sizing Type</label>
+              <div class="pill-group">
+                <button type="button" class="pill-btn active" id="btn-mode-finished">Finished Piece (Imposition)</button>
+                <button type="button" class="pill-btn" id="btn-mode-cut">Cut Sheet (Direct Sheets)</button>
+              </div>
+            </div>
+            <div class="form-col">
+              <label>Standard Preset</label>
+              <select id="calc-preset">
+                <option value="A5" selected>A5 (Runs 8-up on K3 / 16-up on K2)</option>
+                <option value="A4">A4 (Runs 4-up on K3 / 8-up on K2)</option>
+                <option value="A3">A3 (Runs 2-up on K3 / 4-up on K2)</option>
+                <option value="A6">A6 (Runs 16-up on K3 / 32-up on K2)</option>
+                <option value="custom">Custom Dimensions</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-col">
+              <label>Sheet Width (inches)</label>
+              <input type="number" id="calc-width" value="18" step="0.1">
+            </div>
+            <div class="form-col">
+              <label>Sheet Height (inches)</label>
+              <input type="number" id="calc-height" value="24" step="0.1">
+            </div>
+            <div class="form-col">
+              <label>Press Machine</label>
+              <select id="calc-mach-select">
+                <option value="auto" selected>Auto-Detect (by sheet size)</option>
+                <option value="K3">Force K3 (Max 24"x18")</option>
+                <option value="K2">Force K2 (Max 24"x37")</option>
+              </select>
+            </div>
+            <div class="form-col" id="col-ups">
+              <label>Ups per Press Sheet</label>
+              <input type="number" id="calc-ups" value="8" min="1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Sets & Quantities Card -->
+        <div class="calc-card">
+          <div class="calc-card-title">
+            <span>3. Print Run & Sets</span>
+            <span style="font-size:11px;color:var(--muted);font-weight:normal;">Each set gets its own machine setup & impressions</span>
+          </div>
+
+          <div style="background:rgba(224,176,32,0.08);border:1px solid rgba(224,176,32,0.25);border-radius:6px;padding:8px 12px;margin-bottom:12px;">
+            <label class="check-label" style="font-weight:600;color:var(--yellow);font-size:12px;">
+              <input type="checkbox" id="calc-use-tiers" checked>
+              <span>⭐ Use Pre-Fixed Tier Pricing (Runs &le; 5,000 sheets: K2 42k–88k / K3 22k–45k)</span>
+            </label>
+          </div>
+
+          <div id="sets-container">
+            <!-- Dynamic Sets rendered by JS -->
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:center;margin-top:6px;">
+            <button type="button" class="btn-addset" id="btn-add-set">+ Add Another Set (Multi-Set Job)</button>
+          </div>
+
+          <div style="margin-top:10px;">
+            <label class="check-label">
+              <input type="checkbox" id="calc-identical-repeat">
+              <span>Consolidate Identical Repeated Sets (e.g., 10,200X4C - 4 Sets)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Post-Press & Finishing Card -->
+        <div class="calc-card">
+          <div class="calc-card-title">4. Finishing & Operations</div>
+          <div class="check-grid">
+            <label class="check-label">
+              <input type="checkbox" id="calc-chk-cut" checked>
+              <span>Cutting / Trimming (Auto-scaled)</span>
+            </label>
+            <label class="check-label">
+              <input type="checkbox" id="calc-chk-lam">
+              <span>Lamination (Gloss/Matte)</span>
+            </label>
+            <label class="check-label">
+              <input type="checkbox" id="calc-chk-fold">
+              <span>Folding (per 1,000 sheets)</span>
+            </label>
+            <label class="check-label">
+              <input type="checkbox" id="calc-chk-binding">
+              <span>Binding (Books)</span>
+            </label>
+            <label class="check-label">
+              <input type="checkbox" id="calc-chk-design">
+              <span>Design / Artwork Setup</span>
+            </label>
+            <label class="check-label">
+              <input type="checkbox" id="calc-chk-labour">
+              <span>Labour (Hours)</span>
+            </label>
+          </div>
+
+          <!-- Collapsible details for selected finishing -->
+          <div id="finishing-options" style="margin-top:10px;display:none;padding-top:10px;border-top:1px dashed var(--line);">
+            <div class="form-row">
+              <div class="form-col" id="col-lam-sides" style="display:none;">
+                <label>Lamination Sides</label>
+                <select id="calc-lam-sides">
+                  <option value="1">Single Side</option>
+                  <option value="2">Both Sides</option>
+                </select>
+              </div>
+              <div class="form-col" id="col-bind-type" style="display:none;">
+                <label>Binding Type</label>
+                <select id="calc-bind-type">
+                  <option value="spiral">Spiral / comb (Rs 60/book)</option>
+                  <option value="perfect">Perfect binding (Rs 150/book)</option>
+                </select>
+              </div>
+              <div class="form-col" id="col-labour-hrs" style="display:none;">
+                <label>Labour Hours</label>
+                <input type="number" id="calc-labour-hrs" value="2" min="1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Commercial Overrides Card -->
+        <div class="calc-card">
+          <div class="calc-card-title">5. Commercial Overrides & Discretionary Adjustments</div>
+          <p style="font-size:11px;color:var(--muted);margin:0 0 8px;">Margin is already priced into rate cards by default. Only apply extra overhead/margin if Darshana specifies for this customer.</p>
+          <div class="check-grid">
+            <label class="check-label">
+              <input type="checkbox" id="calc-chk-overhead">
+              <span>Add Extra Overhead (<span id="lbl-overhead">10</span>%)</span>
+            </label>
+            <label class="check-label">
+              <input type="checkbox" id="calc-chk-margin">
+              <span>Add Extra Margin (<span id="lbl-margin">25</span>%)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Live Formula & Step-by-Step Breakdown -->
+        <div class="calc-breakdown" id="calc-breakdown">
+          <!-- Populated live by calculation engine -->
+        </div>
+
+      </div>
+
+      <!-- VIEW 2: AI Conversational Agent -->
+      <div id="view-chat" style="display:none;">
+        <div class="chatlog" id="chatlog"></div>
+        <div class="inputrow">
+          <textarea id="input" placeholder="e.g. 500 tri-fold flyers, A4 to A5, full colour both sides, gloss lamination"></textarea>
+          <button class="sendbtn" id="btn-send">Send</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Job Docket, WhatsApp Preview, & History -->
+    <div>
+      
+      <!-- Job Docket Panel -->
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panelhead">
+          <span>Job docket</span>
+          <span class="sub" id="docket-status">Live calculations</span>
+        </div>
+        <div class="docket" id="docket">
+          <div class="crop tl"></div><div class="crop tr"></div><div class="crop bl"></div><div class="crop br"></div>
+          <div class="empty">No quotation yet.<br>The docket fills in automatically once details are entered.</div>
+        </div>
+      </div>
+
+      <!-- WhatsApp Quotation Ready-to-Send Block -->
+      <div class="whatsapp-card" id="whatsapp-card">
+        <div class="whatsapp-head">
+          <div class="whatsapp-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+            WhatsApp Quotation (Copy & Paste)
+          </div>
+          <button class="btn-wa-copy" id="btn-copy-wa">📋 Copy</button>
+        </div>
+        <div class="whatsapp-box" id="whatsapp-preview">Quotation will appear here...</div>
+      </div>
+
+      <!-- History Panel -->
+      <div class="panel" style="margin-top:16px;">
+        <div class="panelhead">
+          <span>Quote history</span>
+          <span class="sub" id="histcount"></span>
+        </div>
+        <div class="histlist" id="histlist">
+          <div class="histitem" style="color:var(--muted);cursor:default;">No saved quotes yet</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Settings & Rate Card Modal -->
+<div class="modalbg" id="modalbg">
+  <div class="modal">
+    <h2>Rate card & Production Settings</h2>
+    <p class="hint">Harshana Printers' base rates in Sri Lankan Rupees (LKR). Edit rows to match current supplier & plate costs — deterministic calculations and AI both use this data.</p>
+    
+    <div class="rchead"><div>Item</div><div>Unit</div><div>Rate (LKR)</div><div></div></div>
+    <div id="rcrows"></div>
+    <button class="addrow" id="btn-addrow">+ add cost item</button>
+
+    <h2 style="margin-top:22px;">Press machines</h2>
+    <p class="hint">Sheet sizes for each offset machine. Automatic imposition respects these limits.</p>
+    <div class="machrow" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;"><div>Machine</div><div>Sheet size</div><div></div></div>
+    <div id="machrows"></div>
+    <button class="addrow" id="btn-addmach">+ add machine</button>
+
+    <h2 style="margin-top:22px;">Raw material sheet sizes</h2>
+    <p class="hint">Full sheet sizes for raw stock. Cutting charges and sheet yield are calculated based on these sizes.</p>
+    <div class="machrow" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;"><div>Material</div><div>Full sheet size / notes</div><div></div></div>
+    <div id="matrows"></div>
+    <button class="addrow" id="btn-addmat">+ add material</button>
+
+    <div class="settingsgrid">
+      <div>
+        <label>Overhead %</label>
+        <input type="number" id="set-overhead">
+      </div>
+      <div>
+        <label>Margin %</label>
+        <input type="number" id="set-margin">
+      </div>
+      <div>
+        <label>Minimum job charge (LKR)</label>
+        <input type="number" id="set-min">
+      </div>
+    </div>
+
+    <h2 style="margin-top:22px;">Pre-fixed Tier Rates (Up to 5,000 nos)</h2>
+    <p class="hint">Harshana Printers' base prices for standard 4C offset runs (printing & plates). 2.5% SSCL tax is added on top.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div style="background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px;">
+        <div style="font-size:11px;font-weight:600;color:var(--magenta);margin-bottom:8px;">K2 Machine Tiers (LKR)</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span>1,000 sheets:</span><input type="number" id="tier-k2-1000" style="width:110px;background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 6px;font-family:'IBM Plex Mono';font-size:12px;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span>2,000 sheets:</span><input type="number" id="tier-k2-2000" style="width:110px;background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 6px;font-family:'IBM Plex Mono';font-size:12px;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span>3,000 sheets:</span><input type="number" id="tier-k2-3000" style="width:110px;background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 6px;font-family:'IBM Plex Mono';font-size:12px;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span>4,000 sheets:</span><input type="number" id="tier-k2-4000" style="width:110px;background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 6px;font-family:'IBM Plex Mono';font-size:12px;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span>5,000 sheets:</span><input type="number" id="tier-k2-5000" style="width:110px;background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 6px;font-family:'IBM Plex Mono';font-size:12px;"></div>
+        </div>
+      </div>
+      <div style="background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px;">
+        <div style="font-size:11px;font-weight:600;color:var(--cyan);margin-bottom:8px;">K3 Machine Tiers (LKR)</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span>1,000 sheets:</span><input type="number" id="tier-k3-1000" style="width:110px;background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 6px;font-family:'IBM Plex Mono';font-size:12px;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span>2,000 sheets:</span><input type="number" id="tier-k3-2000" style="width:110px;background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 6px;font-family:'IBM Plex Mono';font-size:12px;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span>3,000 sheets:</span><input type="number" id="tier-k3-3000" style="width:110px;background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 6px;font-family:'IBM Plex Mono';font-size:12px;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span>4,000 sheets:</span><input type="number" id="tier-k3-4000" style="width:110px;background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 6px;font-family:'IBM Plex Mono';font-size:12px;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span>5,000 sheets:</span><input type="number" id="tier-k3-5000" style="width:110px;background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 6px;font-family:'IBM Plex Mono';font-size:12px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Settings Option -->
+    <h2 style="margin-top:22px;">AI Assistant Settings (Optional)</h2>
+    <p class="hint">
+      The <b>⚡ Instant Calculator</b> works 100% offline with zero keys. To chat with the AI, you can get a <b>100% FREE API key from Google AI Studio</b> (no credit card required!).
+    </p>
+    <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:10px;margin-bottom:10px;">
+      <div>
+        <label style="font-size:10px;color:var(--muted);text-transform:uppercase;">AI Provider</label>
+        <select id="set-aiprovider" style="width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--paper);border-radius:6px;padding:7px 8px;font-size:12px;margin-top:4px;">
+          <option value="gemini" selected>Google Gemini (100% Free — Recommended)</option>
+          <option value="anthropic">Anthropic Claude (Paid API)</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--muted);text-transform:uppercase;">Model</label>
+        <select id="set-aimodel" style="width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--paper);border-radius:6px;padding:7px 8px;font-size:12px;margin-top:4px;">
+          <!-- Dynamically populated -->
+        </select>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <label id="lbl-apikey-title" style="font-size:10px;color:var(--muted);text-transform:uppercase;">Gemini API Key</label>
+        <a id="link-get-key" href="https://aistudio.google.com/app/apikey" target="_blank" style="font-size:11px;color:var(--cyan);text-decoration:underline;">👉 Get Free Gemini Key (Instant & Free)</a>
+      </div>
+      <input type="password" id="set-apikey" placeholder="Paste your API key here" style="width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--paper);border-radius:6px;padding:7px 8px;font-family:'IBM Plex Mono';font-size:12.5px;margin-top:4px;">
+    </div>
+
+    <div class="modalfoot">
+      <span class="savedflag" id="savedflag"></span>
+      <button class="modalclose" id="btn-savesettings">Save & close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Copied to clipboard!</div>
+
+<script>
+// ==================== DEFAULT CONFIGURATION ====================
+const DEFAULT_RATE_CARD = [
+  {name:'Bond paper 80gsm A4', unit:'per sheet', rate:8},
+  {name:'Art paper / board 120-300gsm', unit:'per sheet (A3)', rate:25},
+  {name:'Impression rate (K3)', unit:'per 1000 sheets per colour', rate:1500},
+  {name:'Impression rate (K2)', unit:'per 1000 sheets per colour', rate:1500},
+  {name:'Machine cost (K3)', unit:'per colour, one-time — includes plate cost', rate:3750},
+  {name:'Machine cost (K2)', unit:'per colour, one-time — includes plate cost', rate:3750},
+  {name:'Lamination (gloss/matte)', unit:'per sq.ft', rate:15},
+  {name:'Spiral / comb binding', unit:'per book', rate:60},
+  {name:'Perfect binding', unit:'per book', rate:150},
+  {name:'Cutting / trimming — art paper', unit:'per 500 full sheets', rate:500},
+  {name:'Cutting / trimming — board materials', unit:'per 100 full sheets', rate:500},
+  {name:'Cutting / trimming — sticker paper', unit:'per 100 full sheets', rate:1500},
+  {name:'Folding', unit:'per 1000 sheets', rate:400},
+  {name:'Design / artwork setup', unit:'per job', rate:1000},
+  {name:'Labour', unit:'per hour', rate:500}
+];
+const DEFAULT_PRESET_TIERS = {
+  K2: { 1000: 42000, 2000: 52000, 3000: 65000, 4000: 75000, 5000: 88000 },
+  K3: { 1000: 22000, 2000: 27000, 3000: 35000, 4000: 40000, 5000: 45000 }
+};
+const DEFAULT_SETTINGS = {
+  overhead: 10,
+  margin: 25,
+  min: 1500,
+  aiProvider: 'gemini',
+  apiKey: '',
+  aiModel: 'gemini-3.8-flash',
+  presetTiers: JSON.parse(JSON.stringify(DEFAULT_PRESET_TIERS))
+};
+const DEFAULT_MACHINES = [
+  {name:'K3', size:"maximum sheet size 24in x 18in — runs any press sheet up to this size"},
+  {name:'K2', size:"maximum sheet size 24in x 37in — runs press sheets larger than K3's max (above 24in x 18in) up to 24in x 37in"}
+];
+const DEFAULT_MATERIALS = [
+  {name:'Art paper', size:'24in x 36in full sheet — matches K2 exactly, no trimming needed'},
+  {name:'Ivory board', size:'31in x 43in full sheet — must be cut down to fit K2 max feed (25in x 37in) before printing'},
+  {name:'Art board', size:'25in x 40in full sheet — trimmed slightly to fit K2 max feed (25in x 37in) before printing'},
+  {name:'Sticker paper', size:'20in x 30in full sheet'},
+  {name:'Bond paper', size:'A4 standard cut sheet'}
+];
+
+// App State
+let rateCard = JSON.parse(JSON.stringify(DEFAULT_RATE_CARD));
+let settings = {...DEFAULT_SETTINGS};
+let machines = JSON.parse(JSON.stringify(DEFAULT_MACHINES));
+let materials = JSON.parse(JSON.stringify(DEFAULT_MATERIALS));
+let messages = [];
+let quotes = [];
+let currentCalculatedQuote = null;
+
+// Sets state for the deterministic calculator
+let calcSets = [
+  { id: 1, qty: 6000, colours: 4, sides: 'single', customImpRate: 0, customMachRate: 0 }
+];
+
+const $ = id => document.getElementById(id);
+const fmt = n => 'Rs ' + Number(n||0).toLocaleString('en-LK',{maximumFractionDigits:0});
+const fmtNum = n => Number(n||0).toLocaleString('en-US');
+
+// Storage abstraction with localStorage fallback
+async function storeGet(key){
+  try{
+    if(window.storage && typeof window.storage.get === 'function'){
+      const r = await window.storage.get(key,false);
+      if(r && r.value) return JSON.parse(r.value);
+    }
+  }catch(e){}
+  try{
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : null;
+  }catch(e){ return null; }
+}
+async function storeSet(key,val){
+  try{
+    if(window.storage && typeof window.storage.set === 'function'){
+      await window.storage.set(key, JSON.stringify(val), false);
+    }
+  }catch(e){}
+  try{
+    localStorage.setItem(key, JSON.stringify(val));
+  }catch(e){}
+}
+
+function showToast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 2000);
+}
+
+function getRate(name, fallback=0){
+  const item = rateCard.find(r => r.name.toLowerCase().includes(name.toLowerCase()));
+  return item ? Number(item.rate) : fallback;
+}
+
+// Machine detection based on sorted dimensions
+function detectMachine(w, h){
+  const sorted = [Number(w)||0, Number(h)||0].sort((a,b)=> a-b);
+  const [minDim, maxDim] = sorted;
+  if(minDim <= 18 && maxDim <= 24) return 'K3';
+  if(minDim <= 24 && maxDim <= 37) return 'K2';
+  return 'K2 (Oversized)';
+}
+
+function getPreFixedTier(machine, pressSheets){
+  const m = machine.startsWith('K2') ? 'K2' : 'K3';
+  const pt = (settings.presetTiers && settings.presetTiers[m]) ? settings.presetTiers[m] : DEFAULT_PRESET_TIERS[m];
+  if(!pt) return null;
+  if(pressSheets <= 1000) return { tier: 1000, price: Number(pt[1000]) || DEFAULT_PRESET_TIERS[m][1000] };
+  if(pressSheets <= 2000) return { tier: 2000, price: Number(pt[2000]) || DEFAULT_PRESET_TIERS[m][2000] };
+  if(pressSheets <= 3000) return { tier: 3000, price: Number(pt[3000]) || DEFAULT_PRESET_TIERS[m][3000] };
+  if(pressSheets <= 4000) return { tier: 4000, price: Number(pt[4000]) || DEFAULT_PRESET_TIERS[m][4000] };
+  if(pressSheets <= 5000) return { tier: 5000, price: Number(pt[5000]) || DEFAULT_PRESET_TIERS[m][5000] };
+  return null;
+}
+
+// Round final amount after tax:
+// If remainder above 1,000 is <= 100, round DOWN to nearest lower 1,000 (e.g. 56,023 -> 56,000).
+// If remainder is > 100, round UP to nearest 1,000 (e.g. 56,150 -> 57,000).
+function roundQuoteTotal(amount){
+  const num = Math.round(Number(amount) || 0);
+  const remainder = num % 1000;
+  let res;
+  if(remainder <= 100){
+    res = num - remainder;
+  } else {
+    res = num - remainder + 1000;
+  }
+  const minCharge = (settings && typeof settings.min === 'number') ? settings.min : 1500;
+  return Math.max(minCharge, res);
+}
+
+// ==================== DETERMINISTIC CALCULATION ENGINE ====================
+function calculateDeterministic(){
+  const clientName = ($('calc-client').value || 'Customer').trim();
+  const jobName = ($('calc-jobname').value || 'Print Job').trim();
+  const material = $('calc-material').value;
+  const paperSource = $('calc-papersource').value;
+  const paperUnitCost = Number($('calc-papercost').value) || 0;
+  
+  const isCutSheet = $('btn-mode-cut').classList.contains('active');
+  let width = Number($('calc-width').value) || 18;
+  let height = Number($('calc-height').value) || 24;
+  const machSelect = $('calc-mach-select').value;
+  
+  let machine = machSelect === 'auto' ? detectMachine(width, height) : machSelect;
+  if(machine.startsWith('K2')) machine = 'K2';
+  
+  // Update machine badge in UI
+  const badge = $('detected-machine-badge');
+  badge.textContent = `Machine: ${machine} (${width}"×${height}")`;
+  badge.className = `badge ${machine === 'K3' ? 'badge-k3' : 'badge-k2'}`;
+
+  // Imposition ups
+  let ups = Number($('calc-ups').value) || 1;
+  if(isCutSheet){
+    ups = 1;
+  }
+
+  // Finishing options
+  const hasCutting = $('calc-chk-cut').checked;
+  const hasLam = $('calc-chk-lam').checked;
+  const lamSides = Number($('calc-lam-sides').value) || 1;
+  const hasFold = $('calc-chk-fold').checked;
+  const hasBinding = $('calc-chk-binding').checked;
+  const bindType = $('calc-bind-type').value;
+  const hasDesign = $('calc-chk-design').checked;
+  const hasLabour = $('calc-chk-labour').checked;
+  const labourHours = Number($('calc-labour-hrs').value) || 0;
+
+  // Commercial options
+  const applyOverhead = $('calc-chk-overhead').checked;
+  const applyMargin = $('calc-chk-margin').checked;
+  const isRepeatedIdentical = $('calc-identical-repeat').checked && calcSets.length > 1;
+
+  // Base machine and impression rates
+  const baseImpRate = machine === 'K3' ? getRate('Impression rate (K3)', 1500) : getRate('Impression rate (K2)', 1500);
+  const baseMachRate = machine === 'K3' ? getRate('Machine cost (K3)', 3750) : getRate('Machine cost (K2)', 3750);
+
+  // Cutting rate and batch size per material
+  let cutBatchSize = 500;
+  let cutRate = getRate('Cutting / trimming — art paper', 500);
+  if(material.includes('board') || material.includes('Ivory')){
+    cutBatchSize = 100;
+    cutRate = getRate('Cutting / trimming — board materials', 500);
+  } else if(material.includes('Sticker')){
+    cutBatchSize = 100;
+    cutRate = getRate('Cutting / trimming — sticker paper', 1500);
+  }
+
+  // Calculate each set independently
+  const calculatedSets = [];
+  const docketItems = [];
+  let totalPieces = 0;
+  let totalPressSheets = 0;
+  let totalFullSheets = 0;
+  let hasAnyDiscount = false;
+
+  calcSets.forEach((set, idx) => {
+    const qty = Number(set.qty) || 0;
+    const colours = Number(set.colours) || 4;
+    const sides = set.sides || 'single';
+    const customImp = Number(set.customImpRate) || 0;
+    const customMach = Number(set.customMachRate) || 0;
+
+    const impRateToUse = customImp > 0 ? customImp : baseImpRate;
+    const machRateToUse = customMach > 0 ? customMach : baseMachRate;
+    if(customImp > 0 && customImp !== baseImpRate) hasAnyDiscount = true;
+
+    // Press sheet count
+    const pressSheets = isCutSheet ? qty : Math.ceil(qty / ups);
+    totalPieces += qty;
+    totalPressSheets += pressSheets;
+
+    // Full sheet conversion for cutting
+    let fullSheets = pressSheets;
+    if(material === 'Art paper' && machine === 'K3'){
+      fullSheets = Math.ceil(pressSheets / 2);
+    }
+    totalFullSheets += fullSheets;
+
+    // Impression passes calculation
+    const isDoubleSided = (sides === 'wt' || sides === 'fb');
+    const impSheetsCount = isDoubleSided ? (pressSheets * 2) : pressSheets;
+    const impBatches = Math.ceil(impSheetsCount / 1000);
+    const machMultiplier = sides === 'fb' ? 2 : 1;
+
+    // Check pre-fixed tier pricing (standard 4C runs <= 5,000 sheets without custom rate overrides)
+    const useTiers = $('calc-use-tiers') ? $('calc-use-tiers').checked : true;
+    const tierInfo = (useTiers && customImp === 0 && customMach === 0) ? getPreFixedTier(machine, isDoubleSided ? impSheetsCount : pressSheets) : null;
+
+    let isTierApplied = false;
+    let setSubtotal = 0;
+    let impCost = 0;
+    let stdImpCost = 0;
+    let machCost = 0;
+    let stdMachCost = 0;
+    let setCutCost = 0;
+
+    if(hasCutting){
+      const setCutBatches = Math.ceil(fullSheets / cutBatchSize);
+      setCutCost = setCutBatches * cutRate;
+    }
+
+    if (tierInfo) {
+      isTierApplied = true;
+      impCost = tierInfo.price;
+      stdImpCost = tierInfo.price;
+      machCost = 0;
+      stdMachCost = 0;
+      setSubtotal = tierInfo.price + setCutCost;
+    } else {
+      impCost = impBatches * impRateToUse * colours;
+      stdImpCost = impBatches * baseImpRate * colours;
+      machCost = machRateToUse * colours * machMultiplier;
+      stdMachCost = baseMachRate * colours * machMultiplier;
+      setSubtotal = impCost + machCost + setCutCost;
+    }
+
+    const setStdSubtotal = isTierApplied ? setSubtotal : (stdImpCost + stdMachCost + setCutCost);
+    const setSSCL = setSubtotal * 0.025;
+    const setTaxedTotal = setSubtotal + setSSCL;
+    const setStdTaxedTotal = setStdSubtotal * 1.025;
+
+    calculatedSets.push({
+      setIndex: idx + 1,
+      qty,
+      pressSheets,
+      fullSheets,
+      colours,
+      sides,
+      impBatches,
+      impRateToUse,
+      impCost,
+      stdImpCost,
+      machCost,
+      stdMachCost,
+      machMultiplier,
+      setCutCost,
+      isTierApplied,
+      tierNum: tierInfo ? tierInfo.tier : null,
+      subtotal: setSubtotal,
+      sscl: setSSCL,
+      taxedTotal: setTaxedTotal,
+      stdTaxedTotal: setStdTaxedTotal
+    });
+
+    const setLabel = calcSets.length > 1 ? `Set ${idx + 1} ` : '';
+    if(isTierApplied){
+      docketItems.push({
+        label: `${setLabel}Base Production Tier (${machine}, ${fmtNum(tierInfo.tier)} sheets, ${colours}C${isDoubleSided ? (sides==='wt'?' W&T':' F&B') : ''})`,
+        qty: `Pre-fixed tier`,
+        amount: tierInfo.price
+      });
+      if(hasCutting && setCutCost > 0){
+        docketItems.push({
+          label: `${setLabel}Cutting & trimming (${material})`,
+          qty: `${Math.ceil(fullSheets / cutBatchSize)} batch (${fmtNum(fullSheets)} sheets)`,
+          amount: setCutCost
+        });
+      }
+    } else {
+      docketItems.push({
+        label: `${setLabel}Impressions (${machine}, ${colours}C, ${fmtNum(pressSheets)} sheets${isDoubleSided ? ' × 2 passes' : ''})`,
+        qty: `${impBatches}k × Rs ${fmtNum(impRateToUse)} × ${colours}C`,
+        amount: impCost
+      });
+      docketItems.push({
+        label: `${setLabel}Machine & Plates (${machine}, ${colours}C${sides==='fb'?' F&B 2-sets':sides==='wt'?' W&T 1-set':''})`,
+        qty: `Rs ${fmtNum(machRateToUse)} × ${colours}C${machMultiplier>1?' × 2':''}`,
+        amount: machCost
+      });
+      if(hasCutting && setCutCost > 0){
+        docketItems.push({
+          label: `${setLabel}Cutting & trimming (${material})`,
+          qty: `${Math.ceil(fullSheets / cutBatchSize)} batch (${fmtNum(fullSheets)} sheets)`,
+          amount: setCutCost
+        });
+      }
+    }
+  });
+
+  // Additional Finishing / Job-level items
+  let lamCost = 0;
+  if(hasLam){
+    const sqFt = Math.ceil((width * height / 144) * totalPressSheets * lamSides);
+    const lamRate = getRate('Lamination (gloss/matte)', 15);
+    lamCost = sqFt * lamRate;
+    docketItems.push({ label:`Lamination (${lamSides===2?'Both sides':'Single side'})`, qty:`${fmtNum(sqFt)} sq.ft @ Rs ${lamRate}`, amount:lamCost });
+  }
+
+  let foldCost = 0;
+  if(hasFold){
+    const foldBatches = Math.ceil(totalPieces / 1000);
+    const foldRate = getRate('Folding', 400);
+    foldCost = foldBatches * foldRate;
+    docketItems.push({ label:'Folding', qty:`${foldBatches}k @ Rs ${foldRate}`, amount:foldCost });
+  }
+
+  let bindCost = 0;
+  if(hasBinding){
+    const bindRate = bindType === 'spiral' ? getRate('Spiral / comb binding', 60) : getRate('Perfect binding', 150);
+    bindCost = totalPieces * bindRate;
+    docketItems.push({ label:`Binding (${bindType==='spiral'?'Spiral/comb':'Perfect'})`, qty:`${fmtNum(totalPieces)} @ Rs ${bindRate}`, amount:bindCost });
+  }
+
+  let designCost = 0;
+  if(hasDesign){
+    designCost = getRate('Design / artwork setup', 1000);
+    docketItems.push({ label:'Design / artwork setup', qty:'one-time', amount:designCost });
+  }
+
+  let labourCost = 0;
+  if(hasLabour && labourHours > 0){
+    const labRate = getRate('Labour', 500);
+    labourCost = labourHours * labRate;
+    docketItems.push({ label:'Labour', qty:`${labourHours} hrs @ Rs ${labRate}`, amount:labourCost });
+  }
+
+  let paperCost = 0;
+  if(paperSource === 'harshana' && paperUnitCost > 0){
+    paperCost = totalFullSheets * paperUnitCost;
+    docketItems.push({ label:`Paper stock (${material})`, qty:`${fmtNum(totalFullSheets)} sheets @ Rs ${paperUnitCost}`, amount:paperCost });
+  }
+
+  // Cost Subtotal
+  const costSubtotal = docketItems.reduce((sum, item) => sum + item.amount, 0);
+
+  // Overhead & Margin
+  let overheadAmount = 0;
+  if(applyOverhead){
+    overheadAmount = Math.round(costSubtotal * (settings.overhead / 100));
+  }
+  let marginAmount = 0;
+  if(applyMargin){
+    marginAmount = Math.round((costSubtotal + overheadAmount) * (settings.margin / 100));
+  }
+
+  // SSCL tax: 2.5%
+  const taxableBase = costSubtotal + overheadAmount + marginAmount;
+  const ssclTax = Math.round(taxableBase * 0.025);
+  const totalBeforeRounding = taxableBase + ssclTax;
+
+  // Final total rounded (excess <= 100 rounds down, > 100 rounds up)
+  let finalTotal = roundQuoteTotal(totalBeforeRounding);
+
+  // Standard total (in case discount was applied)
+  let standardGrandTotal = finalTotal;
+
+  // When multiple sets are quoted, each set is priced and rounded independently as a separate line item.
+  // The grand total MUST equal the exact mathematical sum of the individual rounded set lines
+  // so that the printed total 100% matches what the client sees when adding up the lines!
+  if(calculatedSets.length > 1){
+    const extraFinishing = (lamCost + foldCost + bindCost + designCost + labourCost + paperCost);
+    const extraFinishingTaxed = extraFinishing > 0 ? roundQuoteTotal(extraFinishing * 1.025) : 0;
+
+    if(isRepeatedIdentical){
+      const perSetTaxed = roundQuoteTotal(calculatedSets[0].taxedTotal);
+      finalTotal = (perSetTaxed * calculatedSets.length) + extraFinishingTaxed;
+      if(hasAnyDiscount){
+        const stdPerSetTaxed = roundQuoteTotal(calculatedSets[0].stdTaxedTotal);
+        standardGrandTotal = (stdPerSetTaxed * calculatedSets.length) + extraFinishingTaxed;
+      } else {
+        standardGrandTotal = finalTotal;
+      }
+    } else {
+      const sumRoundedSets = calculatedSets.reduce((sum, s) => sum + roundQuoteTotal(s.taxedTotal), 0);
+      finalTotal = sumRoundedSets + extraFinishingTaxed;
+      if(hasAnyDiscount){
+        const stdSumRoundedSets = calculatedSets.reduce((sum, s) => sum + roundQuoteTotal(s.stdTaxedTotal), 0);
+        standardGrandTotal = stdSumRoundedSets + extraFinishingTaxed;
+      } else {
+        standardGrandTotal = finalTotal;
+      }
+    }
+  } else if(hasAnyDiscount){
+    const stdSetSum = calculatedSets.reduce((sum, s) => sum + s.stdTaxedTotal, 0);
+    const stdBeforeRound = stdSetSum + (lamCost + foldCost + bindCost + designCost + labourCost + paperCost) * 1.025;
+    standardGrandTotal = roundQuoteTotal(stdBeforeRound);
+  }
+
+  // Format WhatsApp Output
+  let waText = generateWhatsAppMessage({
+    clientName,
+    jobName,
+    material,
+    paperSource,
+    isCutSheet,
+    width,
+    height,
+    calculatedSets,
+    hasCutting,
+    finalTotal,
+    standardGrandTotal,
+    hasAnyDiscount,
+    isRepeatedIdentical
+  });
+
+  // Build Result Quote Object
+  const quoteObj = {
+    jobName: `${jobName} — ${clientName}`,
+    clientName,
+    items: docketItems,
+    subtotal: costSubtotal,
+    overhead: applyOverhead ? overheadAmount : undefined,
+    margin: applyMargin ? marginAmount : undefined,
+    sscl: ssclTax,
+    totalBeforeRounding,
+    total: finalTotal,
+    whatsappText: waText,
+    ts: Date.now()
+  };
+
+  currentCalculatedQuote = quoteObj;
+
+  // Render UI elements
+  renderDocket(quoteObj);
+  $('whatsapp-preview').textContent = waText;
+  renderBreakdown(calculatedSets, {
+    machine,
+    material,
+    costSubtotal,
+    overheadAmount,
+    marginAmount,
+    ssclTax,
+    totalBeforeRounding,
+    finalTotal,
+    applyOverhead,
+    applyMargin
+  });
+}
+
+function generateWhatsAppMessage(data){
+  const { clientName, jobName, material, paperSource, isCutSheet, width, height, calculatedSets, hasCutting, finalTotal, standardGrandTotal, hasAnyDiscount, isRepeatedIdentical } = data;
+  
+  const lines = [];
+  lines.push(`Quotation Request: *${clientName}*`);
+
+  const totalPieces = calculatedSets.reduce((s, c) => s + c.qty, 0);
+  if(isCutSheet){
+    lines.push(`${width}''x${height}'' ${material}, ${fmtNum(totalPieces)} nos`);
+  } else {
+    lines.push(`${jobName}, ${fmtNum(totalPieces)} nos`);
+  }
+
+  const firstSet = calculatedSets[0];
+  const colours = firstSet.colours;
+  const sidesDesc = firstSet.sides === 'single' ? 'Single Side' : firstSet.sides === 'wt' ? 'Both Sides (W&T)' : 'Both Sides (F&B)';
+  const cutSuffix = hasCutting ? ' with cutting' : '';
+  lines.push(`${colours}C ${sidesDesc}${cutSuffix}`);
+
+  if(isRepeatedIdentical && calculatedSets.length > 1){
+    const count = calculatedSets.length;
+    const perSetTaxed = roundQuoteTotal(calculatedSets[0].taxedTotal);
+    lines.push(`${fmtNum(firstSet.pressSheets)}X${firstSet.colours}C - ${count} Sets`);
+    lines.push(`${fmtNum(perSetTaxed)}X${count}`);
+    lines.push(`Total - ${fmtNum(finalTotal)}/-`);
+  } else if(calculatedSets.length === 1){
+    const s = calculatedSets[0];
+    const sideSuffix = s.sides === 'wt' ? 'X2 (W&T)' : s.sides === 'fb' ? 'X2 (F&B)' : '';
+    lines.push(`${fmtNum(s.pressSheets)}X${s.colours}C${sideSuffix} - ${fmtNum(hasAnyDiscount ? standardGrandTotal : finalTotal)}/-`);
+  } else {
+    calculatedSets.forEach(s => {
+      const sideSuffix = s.sides === 'wt' ? 'X2 (W&T)' : s.sides === 'fb' ? 'X2 (F&B)' : '';
+      const setTaxedRounded = roundQuoteTotal(s.taxedTotal);
+      lines.push(`${fmtNum(s.pressSheets)}X${s.colours}C${sideSuffix} - ${fmtNum(setTaxedRounded)}/-`);
+    });
+    lines.push(`Total - ${fmtNum(hasAnyDiscount ? standardGrandTotal : finalTotal)}/-`);
+  }
+
+  if(hasAnyDiscount){
+    lines.push(`Discounted price - ${fmtNum(finalTotal)}/-`);
+  }
+
+  if(paperSource === 'client'){
+    if(hasCutting){
+      lines.push(`*Plates, printing & cutting charges only`);
+    } else {
+      lines.push(`*Plates & printing charges only`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
+function renderBreakdown(sets, meta){
+  const el = $('calc-breakdown');
+  if(!el) return;
+  let setsHtml = sets.map((s, idx) => {
+    if(s.isTierApplied){
+      return `
+        <div class="step">
+          <span>Set ${idx+1}: ${fmtNum(s.qty)} pcs &rarr; <b>${fmtNum(s.pressSheets)} press sheets</b> on ${meta.machine}</span>
+          <span>${s.colours}C (${s.sides === 'single' ? '1-side' : s.sides === 'wt' ? 'W&T' : 'F&B'})</span>
+        </div>
+        <div class="step" style="color:var(--yellow);font-weight:500;">
+          <span>&bull; ⭐ Pre-Fixed Tier (${meta.machine} up to ${fmtNum(s.tierNum)} sheets, 4C)</span>
+          <span>Rs ${fmtNum(s.impCost)}</span>
+        </div>
+        ${s.setCutCost > 0 ? `
+        <div class="step">
+          <span>&bull; Cutting & trimming (${meta.material || 'Paper'})</span>
+          <span>Rs ${fmtNum(s.setCutCost)}</span>
+        </div>` : ''}
+        ${sets.length > 1 ? `
+        <div class="step" style="color:var(--cyan);font-weight:600;padding-left:12px;">
+          <span>&bull; Set ${idx+1} Quoted Line Total (taxed & rounded)</span>
+          <span>Rs ${fmtNum(roundQuoteTotal(s.taxedTotal))}</span>
+        </div>` : ''}
+      `;
+    }
+    return `
+      <div class="step">
+        <span>Set ${idx+1}: ${fmtNum(s.qty)} pcs &rarr; <b>${fmtNum(s.pressSheets)} press sheets</b> on ${meta.machine}</span>
+        <span>${s.colours}C (${s.sides === 'single' ? '1-side' : s.sides === 'wt' ? 'W&T' : 'F&B'})</span>
+      </div>
+      <div class="step">
+        <span>&bull; Impression: ${s.impBatches}k &times; Rs ${fmtNum(s.impRateToUse)} &times; ${s.colours}C</span>
+        <span>Rs ${fmtNum(s.impCost)}</span>
+      </div>
+      <div class="step">
+        <span>&bull; Machine & Plates: Rs ${fmtNum(s.machCost)} (fixed)</span>
+        <span>Rs ${fmtNum(s.machCost)}</span>
+      </div>
+      ${s.setCutCost > 0 ? `
+      <div class="step">
+        <span>&bull; Cutting & trimming (${meta.material || 'Paper'})</span>
+        <span>Rs ${fmtNum(s.setCutCost)}</span>
+      </div>` : ''}
+      ${sets.length > 1 ? `
+      <div class="step" style="color:var(--cyan);font-weight:600;padding-left:12px;">
+        <span>&bull; Set ${idx+1} Quoted Line Total (taxed & rounded)</span>
+        <span>Rs ${fmtNum(roundQuoteTotal(s.taxedTotal))}</span>
+      </div>` : ''}
+    `;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="h"><span>Calculation Working & Formulas</span><span>100% Deterministic</span></div>
+    ${setsHtml}
+    <div class="step">
+      <span>Subtotal (production + finishing)</span>
+      <span>Rs ${fmtNum(meta.costSubtotal)}</span>
+    </div>
+    ${meta.applyOverhead ? `<div class="step"><span>Overhead (${settings.overhead}%)</span><span>Rs ${fmtNum(meta.overheadAmount)}</span></div>` : ''}
+    ${meta.applyMargin ? `<div class="step"><span>Margin (${settings.margin}%)</span><span>Rs ${fmtNum(meta.marginAmount)}</span></div>` : ''}
+    <div class="step">
+      <span>SSCL Tax (2.5%)</span>
+      <span>Rs ${fmtNum(meta.ssclTax)}</span>
+    </div>
+    <div class="step">
+      <span>Before rounding</span>
+      <span>Rs ${fmtNum(meta.totalBeforeRounding)}</span>
+    </div>
+    <div class="total step">
+      <span>Final Quoted Total ${sets.length > 1 ? '(Sum of individual rounded sets)' : '(rounded to nearest 1,000; &le;100 lower)'}</span>
+      <span>Rs ${fmtNum(meta.finalTotal)}</span>
+    </div>
+  `;
+}
+
+// ==================== SETS MANAGEMENT ====================
+function renderSetsUI(){
+  const container = $('sets-container');
+  container.innerHTML = '';
+  calcSets.forEach((set, index) => {
+    const div = document.createElement('div');
+    div.className = 'set-box';
+    div.innerHTML = `
+      <div class="set-head">
+        <span>Set ${index + 1}</span>
+        ${calcSets.length > 1 ? `<button type="button" class="set-del" data-delset="${set.id}">&times;</button>` : ''}
+      </div>
+      <div class="form-row">
+        <div class="form-col" style="flex:1.2;">
+          <label>Quantity (pcs / sheets)</label>
+          <input type="number" data-id="${set.id}" data-f="qty" value="${set.qty}" min="1">
+        </div>
+        <div class="form-col">
+          <label>Colours</label>
+          <select data-id="${set.id}" data-f="colours">
+            <option value="4" ${set.colours===4?'selected':''}>4C (Full Colour)</option>
+            <option value="1" ${set.colours===1?'selected':''}>1C (Single Colour)</option>
+            <option value="2" ${set.colours===2?'selected':''}>2C (Two Colour)</option>
+            <option value="5" ${set.colours===5?'selected':''}>5C</option>
+          </select>
+        </div>
+        <div class="form-col" style="flex:1.4;">
+          <label>Printing Sides</label>
+          <select data-id="${set.id}" data-f="sides">
+            <option value="single" ${set.sides==='single'?'selected':''}>Single Side</option>
+            <option value="wt" ${set.sides==='wt'?'selected':''}>Both Sides — Work & Turn (1 Plate Set)</option>
+            <option value="fb" ${set.sides==='fb'?'selected':''}>Both Sides — Front & Back (2 Plate Sets)</option>
+          </select>
+        </div>
+        <div class="form-col">
+          <label>Discount Impression Rate</label>
+          <input type="number" data-id="${set.id}" data-f="customImpRate" value="${set.customImpRate||''}" placeholder="Standard (1500)">
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  container.querySelectorAll('input, select').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const id = +e.target.dataset.id;
+      const f = e.target.dataset.f;
+      const targetSet = calcSets.find(s => s.id === id);
+      if(targetSet){
+        targetSet[f] = f === 'sides' ? e.target.value : Number(e.target.value) || 0;
+        calculateDeterministic();
+      }
+    });
+  });
+
+  container.querySelectorAll('.set-del').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const id = +e.target.dataset.delset;
+      calcSets = calcSets.filter(s => s.id !== id);
+      renderSetsUI();
+      calculateDeterministic();
+    });
+  });
+}
+
+$('btn-add-set').addEventListener('click', () => {
+  const newId = (calcSets.length ? Math.max(...calcSets.map(s => s.id)) : 0) + 1;
+  const lastSet = calcSets[calcSets.length - 1] || { qty: 2500, colours: 4, sides: 'single' };
+  calcSets.push({
+    id: newId,
+    qty: Math.max(500, Math.round(lastSet.qty / 2)),
+    colours: lastSet.colours,
+    sides: lastSet.sides,
+    customImpRate: 0,
+    customMachRate: 0
+  });
+  renderSetsUI();
+  calculateDeterministic();
+});
+
+// ==================== EVENT LISTENERS FOR CALCULATOR ====================
+function setupCalcEvents(){
+  const inputsToListen = [
+    'calc-client', 'calc-jobname', 'calc-material', 'calc-papersource', 'calc-papercost',
+    'calc-preset', 'calc-width', 'calc-height', 'calc-mach-select', 'calc-ups',
+    'calc-chk-cut', 'calc-chk-lam', 'calc-lam-sides', 'calc-chk-fold',
+    'calc-chk-binding', 'calc-bind-type', 'calc-chk-design', 'calc-chk-labour',
+    'calc-labour-hrs', 'calc-chk-overhead', 'calc-chk-margin', 'calc-identical-repeat', 'calc-use-tiers'
+  ];
+
+  inputsToListen.forEach(id => {
+    const el = $(id);
+    if(el){
+      el.addEventListener('input', () => {
+        handleConditionalUI();
+        calculateDeterministic();
+      });
+      el.addEventListener('change', () => {
+        handleConditionalUI();
+        calculateDeterministic();
+      });
+    }
+  });
+
+  // Mode Toggle: Finished Piece vs Cut Sheet
+  $('btn-mode-finished').addEventListener('click', () => {
+    $('btn-mode-finished').classList.add('active');
+    $('btn-mode-cut').classList.remove('active');
+    $('calc-preset').parentElement.style.display = 'flex';
+    $('col-ups').style.display = 'flex';
+    updatePresetDimensions();
+    calculateDeterministic();
+  });
+
+  $('btn-mode-cut').addEventListener('click', () => {
+    $('btn-mode-cut').classList.add('active');
+    $('btn-mode-finished').classList.remove('active');
+    $('calc-preset').parentElement.style.display = 'none';
+    $('col-ups').style.display = 'none';
+    calculateDeterministic();
+  });
+
+  // Preset dimension handler
+  $('calc-preset').addEventListener('change', updatePresetDimensions);
+
+  // Tab switching (Calculator vs AI Chat)
+  $('tab-calc').addEventListener('click', () => {
+    $('tab-calc').classList.add('active');
+    $('tab-chat').classList.remove('active');
+    $('view-calc').style.display = 'flex';
+    $('view-chat').style.display = 'none';
+    $('mode-subtitle').textContent = 'Deterministic 100% accurate offset math';
+  });
+
+  $('tab-chat').addEventListener('click', () => {
+    $('tab-chat').classList.add('active');
+    $('tab-calc').classList.remove('active');
+    $('view-calc').style.display = 'none';
+    $('view-chat').style.display = 'block';
+    $('mode-subtitle').textContent = 'Conversational estimating assistant';
+  });
+
+  // WhatsApp Copy Button
+  $('btn-copy-wa').addEventListener('click', () => {
+    const text = $('whatsapp-preview').textContent;
+    if(!text) return;
+    navigator.clipboard.writeText(text);
+    showToast('WhatsApp quote copied!');
+  });
+}
+
+function updatePresetDimensions(){
+  const preset = $('calc-preset').value;
+  const isCut = $('btn-mode-cut').classList.contains('active');
+  if(isCut) return;
+
+  if(preset === 'A5'){
+    $('calc-width').value = 18;
+    $('calc-height').value = 24;
+    $('calc-ups').value = 8;
+  } else if(preset === 'A4'){
+    $('calc-width').value = 18;
+    $('calc-height').value = 24;
+    $('calc-ups').value = 4;
+  } else if(preset === 'A3'){
+    $('calc-width').value = 18;
+    $('calc-height').value = 24;
+    $('calc-ups').value = 2;
+  } else if(preset === 'A6'){
+    $('calc-width').value = 18;
+    $('calc-height').value = 24;
+    $('calc-ups').value = 16;
+  }
+}
+
+function handleConditionalUI(){
+  const isHarshanaPaper = $('calc-papersource').value === 'harshana';
+  $('col-papercost').style.display = isHarshanaPaper ? 'flex' : 'none';
+
+  const hasLam = $('calc-chk-lam').checked;
+  const hasBinding = $('calc-chk-binding').checked;
+  const hasLabour = $('calc-chk-labour').checked;
+  const hasAnyFinishingOption = hasLam || hasBinding || hasLabour;
+
+  $('finishing-options').style.display = hasAnyFinishingOption ? 'block' : 'none';
+  $('col-lam-sides').style.display = hasLam ? 'flex' : 'none';
+  $('col-bind-type').style.display = hasBinding ? 'flex' : 'none';
+  $('col-labour-hrs').style.display = hasLabour ? 'flex' : 'none';
+}
+
+// ==================== DOCKET & HISTORY ====================
+function renderDocket(q){
+  const el = $('docket');
+  if(!q || !q.items || !q.items.length){
+    el.innerHTML = `
+      <div class="crop tl"></div><div class="crop tr"></div><div class="crop bl"></div><div class="crop br"></div>
+      <div class="empty">No quotation yet.<br>The docket fills in once details are entered.</div>
+    `;
+    return;
+  }
+
+  let rows = q.items.map(it=>`
+    <div class="drow"><div class="l">${escapeHtml(it.label)}${it.qty?' <span style="opacity:.6">('+escapeHtml(it.qty)+')</span>':''}</div><div class="r">${fmt(it.amount)}</div></div>
+  `).join('');
+
+  el.innerHTML = `
+    <div class="crop tl"></div><div class="crop tr"></div><div class="crop bl"></div><div class="crop br"></div>
+    <div class="djob">${escapeHtml(q.jobName||'Job quotation')}</div>
+    ${rows}
+    ${q.overhead!==undefined?`<div class="drow"><div class="l">Overhead (${settings.overhead}%)</div><div class="r">${fmt(q.overhead)}</div></div>`:''}
+    ${q.margin!==undefined?`<div class="drow"><div class="l">Margin (${settings.margin}%)</div><div class="r">${fmt(q.margin)}</div></div>`:''}
+    ${q.sscl!==undefined?`<div class="drow"><div class="l">SSCL tax (2.5%)</div><div class="r">${fmt(q.sscl)}</div></div>`:''}
+    ${q.totalBeforeRounding!==undefined?`<div class="drow"><div class="l">Before rounding</div><div class="r">${fmt(q.totalBeforeRounding)}</div></div>`:''}
+    <div class="dtotal"><div>Total (rounded)</div><div>${fmt(q.total)}</div></div>
+    <div class="dactions">
+      <button class="primary" id="docket-save">💾 Save to History</button>
+      <button id="docket-copy">📋 Copy Docket</button>
+      <button id="docket-print">🖨️ Print Ticket</button>
+    </div>
+  `;
+
+  $('docket-save').addEventListener('click', async ()=>{
+    const quoteToSave = {...q, ts: Date.now()};
+    quotes.push(quoteToSave);
+    await persistQuotes();
+    renderHistory();
+    showToast('Quote saved to history!');
+  });
+
+  $('docket-copy').addEventListener('click', ()=>{
+    let txt = (q.jobName||'Job quotation')+'\n\n'+q.items.map(it=>`${it.label}${it.qty?' ('+it.qty+')':''}: ${fmt(it.amount)}`).join('\n');
+    if(q.overhead!==undefined) txt+=`\nOverhead: ${fmt(q.overhead)}`;
+    if(q.margin!==undefined) txt+=`\nMargin: ${fmt(q.margin)}`;
+    if(q.sscl!==undefined) txt+=`\nSSCL tax (2.5%): ${fmt(q.sscl)}`;
+    if(q.totalBeforeRounding!==undefined) txt+=`\nBefore rounding: ${fmt(q.totalBeforeRounding)}`;
+    txt+=`\nTotal: ${fmt(q.total)}`;
+    navigator.clipboard.writeText(txt);
+    showToast('Docket copied!');
+  });
+
+  $('docket-print').addEventListener('click', ()=> window.print());
+}
+
+function renderHistory(){
+  const list = $('histlist');
+  $('histcount').textContent = quotes.length ? quotes.length+' saved' : '';
+  if(quotes.length===0){
+    list.innerHTML = '<div class="histitem" style="color:var(--muted);cursor:default;">No saved quotes yet</div>';
+    return;
+  }
+  list.innerHTML='';
+  quotes.slice().reverse().forEach(q=>{
+    const item = document.createElement('div');
+    item.className='histitem';
+    item.innerHTML = `<div class="l">${escapeHtml(q.jobName||'Job')}<small>${new Date(q.ts).toLocaleDateString()} ${new Date(q.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</small></div><div class="r">${fmt(q.total)}</div>`;
+    item.addEventListener('click', ()=>{
+      renderDocket(q);
+      if(q.whatsappText) $('whatsapp-preview').textContent = q.whatsappText;
+    });
+    list.appendChild(item);
+  });
+}
+
+// ==================== SETTINGS MODAL ====================
+function renderRateRows(){
+  const wrap = $('rcrows');
+  wrap.innerHTML='';
+  rateCard.forEach((item,i)=>{
+    const row = document.createElement('div');
+    row.className='rcrow';
+    row.innerHTML = `
+      <input data-i="${i}" data-f="name" value="${escapeHtml(item.name)}">
+      <input data-i="${i}" data-f="unit" value="${escapeHtml(item.unit)}">
+      <input data-i="${i}" data-f="rate" type="number" value="${item.rate}">
+      <button data-del="${i}">&times;</button>`;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const i = +e.target.dataset.i, f = e.target.dataset.f;
+      rateCard[i][f] = f==='rate' ? Number(e.target.value) : e.target.value;
+    });
+  });
+  wrap.querySelectorAll('button[data-del]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      rateCard.splice(+e.target.dataset.del,1);
+      renderRateRows();
+    });
+  });
+}
+
+function renderMachRows(){
+  const wrap = $('machrows');
+  wrap.innerHTML='';
+  machines.forEach((mch,i)=>{
+    const row = document.createElement('div');
+    row.className='machrow';
+    row.innerHTML = `
+      <input data-i="${i}" data-f="name" value="${escapeHtml(mch.name)}">
+      <input data-i="${i}" data-f="size" value="${escapeHtml(mch.size)}">
+      <button data-delmach="${i}">&times;</button>`;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const i = +e.target.dataset.i, f = e.target.dataset.f;
+      machines[i][f] = e.target.value;
+    });
+  });
+  wrap.querySelectorAll('button[data-delmach]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      machines.splice(+e.target.dataset.delmach,1);
+      renderMachRows();
+    });
+  });
+}
+
+function renderMatRows(){
+  const wrap = $('matrows');
+  wrap.innerHTML='';
+  materials.forEach((mt,i)=>{
+    const row = document.createElement('div');
+    row.className='machrow';
+    row.innerHTML = `
+      <input data-i="${i}" data-f="name" value="${escapeHtml(mt.name)}">
+      <input data-i="${i}" data-f="size" value="${escapeHtml(mt.size)}">
+      <button data-delmat="${i}">&times;</button>`;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const i = +e.target.dataset.i, f = e.target.dataset.f;
+      materials[i][f] = e.target.value;
+    });
+  });
+  wrap.querySelectorAll('button[data-delmat]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      materials.splice(+e.target.dataset.delmat,1);
+      renderMatRows();
+    });
+  });
+}
+
+$('btn-addrow').addEventListener('click', ()=>{
+  rateCard.push({name:'New item', unit:'unit', rate:0});
+  renderRateRows();
+});
+$('btn-addmach').addEventListener('click', ()=>{
+  machines.push({name:'New machine', size:''});
+  renderMachRows();
+});
+$('btn-addmat').addEventListener('click', ()=>{
+  materials.push({name:'New material', size:''});
+  renderMatRows();
+});
+
+// Update Model options based on selected AI Provider
+function updateAIModelOptions(selectedModel){
+  const provider = $('set-aiprovider').value;
+  const modelSelect = $('set-aimodel');
+  const linkKey = $('link-get-key');
+  const lblKey = $('lbl-apikey-title');
+
+  modelSelect.innerHTML = '';
+  if(provider === 'gemini'){
+    lblKey.textContent = 'Google Gemini API Key';
+    linkKey.href = 'https://aistudio.google.com/app/apikey';
+    linkKey.textContent = '👉 Get Free Gemini Key (aistudio.google.com)';
+    linkKey.style.display = 'inline';
+
+    const geminiModels = [
+      { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Free & Current — Recommended)' },
+      { id: 'gemini-3-flash', name: 'Gemini 3 Flash' }
+    ];
+    geminiModels.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.name;
+      if(m.id === selectedModel || (!selectedModel && m.id === 'gemini-3.8-flash')) opt.selected = true;
+      modelSelect.appendChild(opt);
+    });
+  } else {
+    lblKey.textContent = 'Anthropic Claude API Key';
+    linkKey.href = 'https://console.anthropic.com/settings/keys';
+    linkKey.textContent = '👉 Anthropic Console (console.anthropic.com)';
+    linkKey.style.display = 'inline';
+
+    const claudeModels = [
+      { id: 'claude-3-7-sonnet-20250219', name: 'Claude 3.7 Sonnet' },
+      { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
+      { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' }
+    ];
+    claudeModels.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.name;
+      if(m.id === selectedModel) opt.selected = true;
+      modelSelect.appendChild(opt);
+    });
+  }
+}
+
+$('set-aiprovider').addEventListener('change', () => updateAIModelOptions());
+
+$('btn-settings').addEventListener('click', ()=> $('modalbg').classList.add('open'));
+$('modalbg').addEventListener('click', e=>{ if(e.target.id==='modalbg') $('modalbg').classList.remove('open'); });
+
+$('btn-savesettings').addEventListener('click', async ()=>{
+  settings.overhead = Number($('set-overhead').value)||0;
+  settings.margin = Number($('set-margin').value)||0;
+  settings.min = Number($('set-min').value)||0;
+  settings.aiProvider = $('set-aiprovider').value;
+  settings.apiKey = ($('set-apikey').value || '').trim();
+  settings.aiModel = $('set-aimodel').value;
+
+  settings.presetTiers = {
+    K2: {
+      1000: Number($('tier-k2-1000').value) || 42000,
+      2000: Number($('tier-k2-2000').value) || 52000,
+      3000: Number($('tier-k2-3000').value) || 65000,
+      4000: Number($('tier-k2-4000').value) || 75000,
+      5000: Number($('tier-k2-5000').value) || 88000
+    },
+    K3: {
+      1000: Number($('tier-k3-1000').value) || 22000,
+      2000: Number($('tier-k3-2000').value) || 27000,
+      3000: Number($('tier-k3-3000').value) || 35000,
+      4000: Number($('tier-k3-4000').value) || 40000,
+      5000: Number($('tier-k3-5000').value) || 45000
+    }
+  };
+
+  $('lbl-overhead').textContent = settings.overhead;
+  $('lbl-margin').textContent = settings.margin;
+
+  await storeSet('print-agent-settings', {rateCard, settings, machines, materials});
+  $('savedflag').textContent = 'Saved successfully';
+  setTimeout(()=> $('savedflag').textContent='', 1500);
+  $('modalbg').classList.remove('open');
+  
+  // Re-run live calculator with updated rate card
+  calculateDeterministic();
+});
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ==================== CHAT & AI INTEGRATION ====================
+function pushMessage(role, text, isError=false){
+  messages.push({role, text, isError});
+  renderChat();
+}
+
+function switchToCalc(){
+  const tab = $('tab-calc');
+  if(tab) tab.click();
+}
+
+function retryLastMessage(){
+  const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+  if(!lastUserMsg) return;
+  if(messages.length && messages[messages.length - 1].role === 'agent' && messages[messages.length - 1].isError){
+    messages.pop();
+    renderChat();
+  }
+  const btn = $('btn-send');
+  if(btn) btn.disabled = true;
+  callAgent(lastUserMsg.text, true).finally(()=> { if(btn) btn.disabled = false; });
+}
+
+function renderChat(){
+  const log = $('chatlog');
+  log.innerHTML='';
+  messages.forEach(m=>{
+    const div = document.createElement('div');
+    div.className = 'msg ' + (m.role==='user'?'user':'agent');
+    if(m.isError){
+      div.style.borderColor = 'rgba(224,176,32,0.4)';
+      div.style.background = 'rgba(224,176,32,0.06)';
+      div.innerHTML = formatText(stripQuoteBlock(m.text)) + `
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <button type="button" class="btn-wa-copy" onclick="retryLastMessage()" style="background:var(--yellow);color:#121310;font-size:11.5px;padding:6px 12px;border-radius:6px;cursor:pointer;">🔄 Retry Now</button>
+          <button type="button" class="btn-wa-copy" onclick="switchToCalc()" style="background:var(--cyan);color:#0a2226;font-size:11.5px;padding:6px 12px;border-radius:6px;cursor:pointer;">⚡ Open Instant Calculator</button>
+        </div>
+      `;
+    } else {
+      div.innerHTML = formatText(stripQuoteBlock(m.text));
+    }
+    log.appendChild(div);
+  });
+  log.scrollTop = log.scrollHeight;
+  setTimeout(() => { log.scrollTop = log.scrollHeight; }, 60);
+}
+
+function formatText(t){
+  return escapeHtml(t)
+    .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+    .replace(/\[(.+?)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+    .replace(/\n/g,'<br>');
+}
+function stripQuoteBlock(t){
+  return t.replace(/```quote[\s\S]*?```/,'').trim();
+}
+function extractQuoteBlock(t){
+  const m = t.match(/```quote\s*([\s\S]*?)```/);
+  if(!m) return null;
+  try{ return JSON.parse(m[1]); }catch(e){ return null; }
+}
+
+async function persistMessages(){ await storeSet('print-agent-messages', messages); }
+async function persistQuotes(){ await storeSet('print-agent-quotes', quotes); }
+
+let cachedGeminiModels = null;
+async function fetchGeminiModels(apiKey){
+  if(cachedGeminiModels && cachedGeminiModels.length) return cachedGeminiModels;
+  try{
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    if(res.ok){
+      const data = await res.json();
+      const list = (data.models || [])
+        .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
+        .map(m => m.name.replace(/^models\//, ''))
+        .filter(n => !n.includes('embedding') && !n.includes('aqa') && !n.includes('imagen') && !n.includes('tts'));
+      if(list.length){
+        cachedGeminiModels = list;
+        return list;
+      }
+    }
+  }catch(e){}
+  return ['gemini-3.8-flash'];
+}
+
+function buildSystemPrompt(){
+  const rc = rateCard.map(r=>`- ${r.name} — ${r.unit} — LKR ${r.rate}`).join('\n');
+  const mach = machines.map(m=>`- ${m.name}: ${m.size}`).join('\n');
+  const mat = materials.map(m=>`- ${m.name}: ${m.size}`).join('\n');
+  const pt = (settings.presetTiers && settings.presetTiers.K2) ? settings.presetTiers : DEFAULT_PRESET_TIERS;
+  return `You are a print costing and quotation assistant for Harshana Printers, an offset printing business in Sri Lanka. Harshana Printers only does offset printing — it does not offer digital short-run printing or large-format printing. You are helping the owner, Darshana, work out accurate job costs and produce client-ready quotations. All money is in Sri Lankan rupees (LKR).
+
+PRESS MACHINES:
+${mach}
+Press sheets up to 24''x18'' run on K3. Sheets larger than 24''x18'' up to 24''x37'' run on K2. Orientation does not matter (18x24 == 24x18).
+Standard imposition: A4 = 4-up on K3, 8-up on K2. A5 = 8-up on K3, 16-up on K2.
+
+RAW MATERIALS:
+${mat}
+
+⭐ PRE-FIXED TIER PRICING TABLE (Runs up to 5,000 sheets):
+For standard 4C offset jobs up to 5,000 press sheets, Harshana Printers uses PRE-FIXED base prices (covers plates & printing):
+
+K2 Machine:
+- 1,000 sheets: LKR ${pt.K2[1000]}
+- 2,000 sheets: LKR ${pt.K2[2000]}
+- 3,000 sheets: LKR ${pt.K2[3000]}
+- 4,000 sheets: LKR ${pt.K2[4000]}
+- 5,000 sheets: LKR ${pt.K2[5000]}
+
+K3 Machine:
+- 1,000 sheets: LKR ${pt.K3[1000]}
+- 2,000 sheets: LKR ${pt.K3[2000]}
+- 3,000 sheets: LKR ${pt.K3[3000]}
+- 4,000 sheets: LKR ${pt.K3[4000]}
+- 5,000 sheets: LKR ${pt.K3[5000]}
+
+RULES FOR APPLYING PRE-FIXED TIERS (PRIORITIZE THIS FOR JOBS <= 5,000 SHEETS):
+1. Calculate the required press sheet count from the finished quantity and imposition ups (e.g. 6,000 A5 leaflets running 8-up on K3 = 750 press sheets).
+2. If press sheets <= 5,000, round UP to the nearest thousand tier to determine the pre-fixed base price:
+   - Up to 1,000 sheets -> 1,000 tier (e.g. 750 sheets on K3 = LKR 22,000 base).
+   - 1,001 to 2,000 sheets -> 2,000 tier (e.g. 1,500 sheets on K3 = LKR 27,000 base).
+   - 2,001 to 3,000 sheets -> 3,000 tier.
+   - 3,001 to 4,000 sheets -> 4,000 tier.
+   - 4,001 to 5,000 sheets -> 5,000 tier.
+3. If double-sided Work & Turn (W&T), sheets pass through the press twice (press sheets × 2 passes). Use the tier matching the total passes if <= 5,000.
+4. Add any requested extras on top of the base tier: cutting/trimming (scaled per paper/board type from rate card), finishing (lamination, binding, folding, design), or paper cost (if Harshana supplied).
+5. Add SSCL tax (2.5%) on top of the base tier price + extras.
+6. ROUNDING RULE AFTER TAX (CRITICAL):
+   When rounding the final amount after SSCL tax to the nearest LKR 1,000:
+   - If the excess remainder over the thousand (amount % 1000) is up to LKR 100 (<= 100), always round DOWN to the lower thousand figure.
+     Ex: After-tax amount LKR 56,023/- -> final amount is LKR 56,000/- (excess 23 <= 100).
+     Ex: After-tax amount LKR 44,075/- -> final amount is LKR 44,000/- (excess 75 <= 100).
+     Ex: After-tax amount LKR 83,025/- -> final amount is LKR 83,000/- (excess 25 <= 100).
+   - If the excess remainder over the thousand is greater than LKR 100 (> 100), round UP to the next thousand figure.
+     Ex: After-tax amount LKR 22,550/- -> round UP to LKR 23,000/- (excess 550 > 100).
+     Ex: After-tax amount LKR 56,150/- -> round UP to LKR 57,000/- (excess 150 > 100).
+   Example (with cutting): 1,000 cut sheets of Art Paper 24''x36'' on K2: Base = LKR 42,000. Cutting (2 batches @ 500) = LKR 1,000. Subtotal = LKR 43,000. SSCL tax (2.5%) = LKR 1,075. Total before rounding = LKR 44,075. Remainder is 75 (<= 100) -> Grand Total = LKR 44,000/-.
+7. For runs greater than 5,000 sheets, use the standard rate card formulas below.
+
+RATE CARD & FORMULAS (for runs > 5,000 sheets or custom single operations):
+${rc}
+
+CRITICAL MATHEMATICAL RULES FOR RUNS > 5,000 SHEETS:
+1. 🚫 ABSOLUTE PROHIBITION ON SPLITTING / CHUNKING SINGLE RUNS:
+   - When a job specifies a single run of more than 5,000 sheets (e.g. 11,250 sheets, 8,000 sheets, 15,000 sheets), it is ONE CONTINUOUS PRINT RUN on the offset press!
+   - ⚠️ NEVER SPLIT OR CHUNK a single run into 5,000 + 5,000 + 1,250 or similar! In offset printing, a single run uses only ONE setup and ONE set of plates (or 2 sets for F&B). Splitting a single run into multiple tier chunks erroneously multiplies machine setup and plate costs, causing massive overcharging!
+   - ⚠️ NEVER arbitrarily change the printing mode midway (e.g. NEVER switch F&B to W&T)! If the job is Both Sides (F&B), the entire run is F&B.
+   - For ANY continuous run > 5,000 sheets, calculate the entire sheet quantity in a SINGLE continuous step using the Rate Card formulas:
+     * Full Example for 11,250 sheets 4C Both Sides (F&B) (Plates & printing only):
+       - Machine: K2 or K3 (machineCost = 3,750, impRate = 1,500)
+       - Passes: 11,250 sheets × 2 passes (F&B) = 22,500 total impressions
+       - Impression Batches: Math.ceil(22,500 / 1000) = 23 batches (23,000 imp)
+       - Impression Cost: 23 batches × 1,500 × 4 colours = LKR 138,000
+       - Machine & Plates Cost (F&B = 2 sets): 2 × (3,750 × 4) = LKR 30,000
+       - Subtotal: 138,000 + 30,000 = LKR 168,000
+       - SSCL Tax (2.5%): 168,000 × 0.025 = LKR 4,200
+       - Total before rounding: 168,000 + 4,200 = LKR 172,200
+       - Rounding: remainder is 200 (> 100), round UP to next thousand -> LKR 173,000/-!
+       - WhatsApp Output:
+         Quotation Request: *Expo Printers*
+         13 Pages Set, 11,250 nos
+         4C Both Sides (F&B)
+         11,250X4CX2 (F&B) - 173,000/-
+         Total - 173,000/-
+         *Plates & printing charges only
+
+2. IMPRESSION BATCHING RULE:
+   - Impression passes are calculated in 1,000-sheet batches, ALWAYS rounded UP to the next whole integer.
+   - Formula: Math.ceil(pressSheets / 1000) × impressionRate × colours.
+   - ⚠️ NEVER multiply by decimals like 10.2! For example, 10,200 sheets = 10,200 / 1000 = 10.2 -> MUST ROUND UP to 11 batches (11,000 sheets)!
+   - Cost: 11k × 4 colours × LKR 1,500 = LKR 66,000.
+   - For double-sided work: double the press sheets FIRST before dividing by 1000: Math.ceil((pressSheets × 2) / 1000) × impressionRate × colours.
+
+3. MACHINE / PLATE COST:
+   - Fixed one-time setup: machineCost × colours (includes plate cost, no quantity multiplier).
+   - K3 = 3,750 × 4 = LKR 15,000. K2 = 3,750 × 4 = LKR 15,000.
+   - For W&T (Work & Turn, single plate set): 1× machine cost. For F&B (Front & Back, two plate sets): 2× machine cost.
+
+4. MULTI-SET & IDENTICAL REPEATED SETS JOBS:
+   - Multi-set quotes apply when the client requests multiple distinct items, different quantities, or repeated sets (e.g. Set 1: 5,000, Set 2: 5,000, Set 3: 1,250; or "4 Sets of 10,200 each").
+   - Each set gets its own press setup and impressions. Calculate, tax, and round each set independently!
+   - ⚠️ CRITICAL ARITHMETIC RECONCILIATION RULE FOR MULTI-SET QUOTES:
+     When displaying multiple set lines in WhatsApp, THE GRAND TOTAL AT THE BOTTOM MUST BE THE EXACT MATHEMATICAL SUM OF THE DISPLAYED LINE ITEMS!
+     Example with different sets (Set 1: 93,000/-, Set 2: 93,000/-, Set 3: 36,000/-):
+     - Line 1: 5,000X4CX2 (F&B) - 93,000/-
+     - Line 2: 5,000X4CX2 (F&B) - 93,000/-
+     - Line 3: 1,250X4CX2 (W&T) - 36,000/-
+     - Exact Sum: 93,000 + 93,000 + 36,000 = 222,000/-!
+     - WhatsApp Output MUST state:
+       Total - 222,000/-
+     🚫 NEVER output Total - 221,000/-! When individual line items are displayed, clients and estimators always verify the total by adding up the printed lines (93,000 + 93,000 + 36,000 = 222,000/-). If your total says 221,000/-, it will be immediately flagged as a calculation error!
+   - Example with identical repeated sets (18''x24'' 4C, 10,200 sheets × 4 sets on K3):
+     Per set:
+     - Machine cost (4C): 4 × 3,750 = LKR 15,000
+     - Impression cost (4C): 11k × 4 × 1,500 = LKR 66,000
+     - Subtotal per set: LKR 81,000
+     - SSCL tax (2.5%): 81,000 × 0.025 = LKR 2,025
+     - Total before rounding: LKR 83,025
+     - Per-set price (remainder 25 <= 100, round down): LKR 83,000/-
+     Total for 4 sets: 83,000 × 4 = LKR 332,000/-!
+     In WhatsApp quotation for identical repeated sets, consolidate cleanly:
+     Quotation Request: *Client Name*
+     18''x24'' 100gsm Art Paper
+     4C Single Side
+     10,200X4C - 4 Sets
+     83,000X4
+     Total - 332,000/-
+     *Plates & printing charges only
+
+5. MULTI-PAGE SETS / CALENDARS ("X Pages Set"):
+   - When a customer mentions "13 Pages Set, 11,250 nos" (or similar):
+     * If 11,250 is the press sheet count for a single form/leaf, the price is LKR 173,000/-.
+     * If there are 13 separate forms/leaves running 11,250 sheets each (e.g. a 13-sheet calendar), clearly specify: "Per leaf/form: LKR 173,000/-. Total for 13 leaves: 173,000 × 13 = LKR 2,249,000/-".
+
+OTHER RULES:
+1. Always complete the entire quotation: show imposition, calculation per set, SSCL tax, total, WhatsApp quotation, and \`\`\`quote block. Never stop halfway.
+2. Paper cost default: client supplied. Exclude paper unless asked.
+3. In the WhatsApp note, if paper is client supplied and cutting was included, write "*Plates, printing & cutting charges only". If without cutting, write "*Plates & printing charges only".
+4. Margin is already built in. Minimum job charge: LKR ${settings.min}.
+5. Format every number 1,000+ with commas (e.g. 30,000; 22,000; 84,000; 336,000).
+6. Always end with a valid JSON in a \`\`\`quote block:
+\`\`\`quote
+{"jobName":"short job description","items":[{"label":"cost item name","qty":"basis","amount":number}],"sscl":number,"totalBeforeRounding":number,"total":number}
+\`\`\``;
+}
+
+async function callAgent(userText, isRetry=false){
+  if(!isRetry){
+    pushMessage('user', userText);
+    await persistMessages();
+  }
+  const typing = document.createElement('div');
+  typing.className='typing';
+  typing.id='typingind';
+  typing.textContent='Agent is working out the numbers…';
+  $('chatlog').appendChild(typing);
+  $('chatlog').scrollTop = $('chatlog').scrollHeight;
+
+  const apiKey = (settings.apiKey || '').trim();
+  const provider = settings.aiProvider || 'gemini';
+
+  if(!apiKey){
+    setTimeout(()=>{
+      if($('typingind')) $('typingind').remove();
+      pushMessage('agent', "⚠️ **No API Key configured for AI Chat.**\n\n" +
+        "You don't need a paid Anthropic key! You can get a **100% Free Google Gemini API Key** in 30 seconds:\n" +
+        "1. Open [Google AI Studio](https://aistudio.google.com/app/apikey) and click **'Get API key'**.\n" +
+        "2. Paste it in **⚙️ Rate card & Settings**.\n\n" +
+        "Or, simply use the **⚡ Instant Calculator** tab — it runs 100% offline with zero keys!");
+      persistMessages();
+    }, 500);
+    return;
+  }
+
+  try{
+    let fullText = '';
+
+    if(provider === 'gemini'){
+      // Dynamically discover valid models for this user's API key
+      const availableModels = await fetchGeminiModels(apiKey);
+      
+      let candidateModels = [settings.aiModel || 'gemini-3.8-flash'];
+      availableModels.forEach(m => {
+        if(!candidateModels.includes(m)) candidateModels.push(m);
+      });
+      // Prioritize flash models
+      candidateModels.sort((a,b) => {
+        const sel = settings.aiModel || 'gemini-3.8-flash';
+        if(a === sel) return -1;
+        if(b === sel) return 1;
+        const aFlash = a.includes('flash');
+        const bFlash = b.includes('flash');
+        if(aFlash && !bFlash) return -1;
+        if(!aFlash && bFlash) return 1;
+        return 0;
+      });
+      candidateModels = candidateModels.slice(0, 4);
+
+      const contents = messages.map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }]
+      }));
+
+      let lastError = null;
+      let success = false;
+
+      for (let i = 0; i < candidateModels.length; i++) {
+        const currentModel = candidateModels[i];
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
+
+        for (let attempt = 1; attempt <= 4; attempt++) {
+          try {
+            const typingEl = $('typingind');
+            if (typingEl) {
+              if (attempt > 1) {
+                typingEl.textContent = `Retrying on ${currentModel} (attempt ${attempt}/4)…`;
+              } else if (i > 0) {
+                typingEl.textContent = `Trying fallback model ${currentModel}…`;
+              } else {
+                typingEl.textContent = 'Agent is working out the numbers…';
+              }
+            }
+
+            const response = await fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": apiKey
+              },
+              body: JSON.stringify({
+                system_instruction: {
+                  parts: [{ text: buildSystemPrompt() }]
+                },
+                contents: contents,
+                generationConfig: {
+                  temperature: 0.2,
+                  maxOutputTokens: 8192,
+                  thinkingConfig: {
+                    thinkingLevel: "low"
+                  }
+                }
+              })
+            });
+
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              const errMsg = errData.error?.message || `HTTP ${response.status}`;
+              lastError = new Error(errMsg);
+
+              // Check if rate limited (429, 503, quota, resource_exhausted, demand)
+              const isRateLimited = response.status === 429 || 
+                                    response.status === 503 || 
+                                    errMsg.toLowerCase().includes('quota') || 
+                                    errMsg.toLowerCase().includes('limit') || 
+                                    errMsg.toLowerCase().includes('demand') ||
+                                    errMsg.toLowerCase().includes('resource_exhausted');
+
+              if (isRateLimited) {
+                if (attempt < 4) {
+                  // Extract exact retry delay if Google provided one (e.g. "Please retry in 511.14ms")
+                  const retryMsMatch = errMsg.match(/retry in\s+([0-9.]+)\s*ms/i);
+                  const retrySecMatch = errMsg.match(/retry in\s+([0-9.]+)\s*s/i);
+                  let waitTime = attempt * 1500;
+                  if (retryMsMatch) {
+                    waitTime = Math.max(800, Math.ceil(parseFloat(retryMsMatch[1])) + 250);
+                  } else if (retrySecMatch) {
+                    waitTime = Math.max(1000, Math.ceil(parseFloat(retrySecMatch[1]) * 1000) + 300);
+                  }
+
+                  if (typingEl) {
+                    typingEl.textContent = `Free quota paused — retrying in ${(waitTime / 1000).toFixed(1)}s (attempt ${attempt + 1}/4)…`;
+                  }
+                  await new Promise(r => setTimeout(r, waitTime));
+                  continue;
+                }
+              }
+              break;
+            }
+
+            const data = await response.json();
+            const candidate = data.candidates?.[0];
+            const parts = candidate?.content?.parts || [];
+            // Extract all text parts across parts, ignoring internal thought parts
+            const textParts = parts.filter(p => !p.thought && typeof p.text === 'string').map(p => p.text);
+            fullText = (textParts.length ? textParts.join('') : parts.map(p => p.text || '').join('')).trim() || "I couldn't work that out — please rephrase the job details.";
+            success = true;
+            break;
+          } catch (err) {
+            lastError = err;
+            if (attempt === 1) {
+              await new Promise(r => setTimeout(r, 1000));
+              continue;
+            }
+          }
+        }
+        if (success) break;
+      }
+
+      if (!success) {
+        throw lastError || new Error("Google servers are busy. Please try again in a moment.");
+      }
+
+    } else {
+      // Anthropic Claude API
+      const apiMessages = messages.map(m=>({role: m.role==='user'?'user':'assistant', content: m.text}));
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: settings.aiModel || "claude-3-7-sonnet-20250219",
+          max_tokens: 4096,
+          system: buildSystemPrompt(),
+          messages: apiMessages
+        })
+      });
+
+      if(!response.ok){
+        const errData = await response.json().catch(()=>({}));
+        throw new Error(errData.error?.message || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const textBlocks = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text);
+      fullText = textBlocks.join('\n').trim() || "I couldn't work that out — please rephrase the job details.";
+    }
+
+    pushMessage('agent', fullText);
+    await persistMessages();
+
+    // Check if reply contains a quote block to populate docket
+    const q = extractQuoteBlock(fullText);
+    if(q && typeof q.total === 'number'){
+      q.ts = Date.now();
+      // If the quote block has multiple items and their sum differs slightly from total due to line-item rounding,
+      // reconcile total to match the exact sum of the items so docket & WhatsApp are 100% consistent:
+      if(Array.isArray(q.items) && q.items.length > 1){
+        const itemsSum = q.items.reduce((s, it) => s + (typeof it.amount === 'number' ? it.amount : 0), 0);
+        if(itemsSum > 0 && Math.abs(itemsSum - q.total) <= 3000){
+          q.total = itemsSum;
+        } else if(typeof q.totalBeforeRounding === 'number'){
+          q.total = roundQuoteTotal(q.totalBeforeRounding);
+        } else {
+          q.total = roundQuoteTotal(q.total);
+        }
+      } else if(typeof q.totalBeforeRounding === 'number'){
+        q.total = roundQuoteTotal(q.totalBeforeRounding);
+      } else {
+        q.total = roundQuoteTotal(q.total);
+      }
+      renderDocket(q);
+      quotes.push(q);
+      await persistQuotes();
+      renderHistory();
+    }
+  }catch(e){
+    const isQuota = e.message.toLowerCase().includes('quota') || 
+                    e.message.toLowerCase().includes('limit') || 
+                    e.message.toLowerCase().includes('429') ||
+                    e.message.toLowerCase().includes('resource_exhausted');
+    const isBusy = e.message.toLowerCase().includes('demand') || e.message.includes('503');
+
+    let msg = '';
+    if(isQuota){
+      msg = `⏳ **Google Free Tier Rate Limit Reached (20 requests/minute)**\n\n` +
+            `Google AI Studio's free tier has a limit of 20 requests per minute on Gemini. ` +
+            `Because several calculations were processed in quick succession, Google temporarily paused requests for a few moments.\n\n` +
+            `💡 **Quick Options:**\n` +
+            `• Click **'🔄 Retry Now'** below (the 20 RPM limit resets every 30–60 seconds).\n` +
+            `• Switch to the **'⚡ Instant Calculator'** tab — it runs 100% locally with zero rate limits!`;
+    } else if(isBusy){
+      msg = `💡 **Google's servers are temporarily busy.**\n\n` +
+            `Spikes in server demand are temporary. Please try again in a few seconds, or switch to the **⚡ Instant Calculator** tab.`;
+    } else {
+      msg = `Something went wrong reaching the AI: ${e.message}.\n\n` +
+            `Please check your API key in Settings, or switch to the Instant Calculator tab.`;
+    }
+    pushMessage('agent', msg, true);
+    await persistMessages();
+  }finally{
+    const t = document.getElementById('typingind');
+    if(t) t.remove();
+  }
+}
+
+$('btn-send').addEventListener('click', send);
+$('input').addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+});
+
+function send(){
+  const inp = $('input');
+  const text = inp.value.trim();
+  if(!text) return;
+  inp.value='';
+  $('btn-send').disabled = true;
+  callAgent(text).finally(()=> $('btn-send').disabled=false);
+}
+
+$('btn-clear').addEventListener('click', async ()=>{
+  messages = [];
+  await persistMessages();
+  renderChat();
+  pushMessage('agent', "Started a new chat. Tell me about the job you'd like priced, or use the Instant Calculator tab.");
+  persistMessages();
+});
+
+// ==================== APP INITIALIZATION ====================
+async function loadAll(){
+  const s = await storeGet('print-agent-settings');
+  if(s){
+    rateCard = s.rateCard || rateCard;
+    settings = {...settings, ...(s.settings || {})};
+    machines = s.machines || machines;
+    materials = s.materials || materials;
+  }
+  const m = await storeGet('print-agent-messages');
+  if(m) messages = m;
+  const q = await storeGet('print-agent-quotes');
+  if(q) quotes = q;
+
+  renderRateRows();
+  renderMachRows();
+  renderMatRows();
+
+  $('set-overhead').value = settings.overhead;
+  $('set-margin').value = settings.margin;
+  $('set-min').value = settings.min;
+  $('lbl-overhead').textContent = settings.overhead;
+  $('lbl-margin').textContent = settings.margin;
+  
+  if(!settings.aiModel || settings.aiModel.includes('2.5') || settings.aiModel.includes('1.5') || settings.aiModel.includes('2.0') || settings.aiModel.includes('sonnet-4-6')){
+    settings.aiModel = 'gemini-3.8-flash';
+  }
+  if(settings.aiProvider) $('set-aiprovider').value = settings.aiProvider;
+  updateAIModelOptions(settings.aiModel);
+  if(settings.apiKey) $('set-apikey').value = settings.apiKey;
+
+  const pt = (settings.presetTiers && settings.presetTiers.K2) ? settings.presetTiers : DEFAULT_PRESET_TIERS;
+  if($('tier-k2-1000')) $('tier-k2-1000').value = pt.K2[1000] || 42000;
+  if($('tier-k2-2000')) $('tier-k2-2000').value = pt.K2[2000] || 52000;
+  if($('tier-k2-3000')) $('tier-k2-3000').value = pt.K2[3000] || 65000;
+  if($('tier-k2-4000')) $('tier-k2-4000').value = pt.K2[4000] || 75000;
+  if($('tier-k2-5000')) $('tier-k2-5000').value = pt.K2[5000] || 88000;
+  if($('tier-k3-1000')) $('tier-k3-1000').value = pt.K3[1000] || 22000;
+  if($('tier-k3-2000')) $('tier-k3-2000').value = pt.K3[2000] || 27000;
+  if($('tier-k3-3000')) $('tier-k3-3000').value = pt.K3[3000] || 35000;
+  if($('tier-k3-4000')) $('tier-k3-4000').value = pt.K3[4000] || 40000;
+  if($('tier-k3-5000')) $('tier-k3-5000').value = pt.K3[5000] || 45000;
+
+  renderSetsUI();
+  setupCalcEvents();
+  renderChat();
+  renderHistory();
+
+  // Initial calculation
+  calculateDeterministic();
+
+  if(messages.length===0){
+    pushMessage('agent', "Hi, I'm your print costing assistant for Harshana Printers.\n\n" +
+      "• **⚡ Instant Calculator**: Use the tab above to price any job offline with 100% accurate math.\n" +
+      "• **💬 Free AI Chat**: To chat with AI, you can add a **100% free Google Gemini key** (from [Google AI Studio](https://aistudio.google.com/app/apikey)) in Settings!");
+    persistMessages();
+  }
+}
+
+loadAll();
+</script>
+</body>
+</html>
