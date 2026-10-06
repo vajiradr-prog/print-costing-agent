@@ -6,6 +6,8 @@
 <title>Print Costing & Quotation Agent — Harshana Printers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --bg:#121310;
@@ -592,6 +594,20 @@
       </div>
     </div>
 
+    <!-- Cloud Sync Settings -->
+    <h2 style="margin-top:22px;">☁️ Cloud Sync (Access from Any Device)</h2>
+    <p class="hint">
+      Enter the <b>same Sync Code</b> on all your devices (PC, phone, tablet) to keep quotation history, rate cards, and settings in sync automatically. Use any word or phrase you'll remember.
+    </p>
+    <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:8px;">
+      <div style="flex:1;">
+        <label style="font-size:10px;color:var(--muted);text-transform:uppercase;">Sync Code</label>
+        <input type="text" id="set-synccode" placeholder="e.g. harshana2025" style="width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--paper);border-radius:6px;padding:7px 8px;font-family:'IBM Plex Mono';font-size:12.5px;margin-top:4px;">
+      </div>
+      <button id="btn-sync-now" style="background:var(--cyan);color:#0a2226;border:none;border-radius:6px;padding:8px 14px;font-family:'Space Grotesk';font-weight:600;font-size:12px;cursor:pointer;white-space:nowrap;">🔄 Sync Now</button>
+    </div>
+    <div id="sync-status" style="font-size:11px;color:var(--muted);margin-bottom:6px;"></div>
+
     <!-- AI Settings Option -->
     <h2 style="margin-top:22px;">AI Assistant Settings (Optional)</h2>
     <p class="hint">
@@ -713,6 +729,159 @@ async function storeSet(key,val){
   try{
     localStorage.setItem(key, JSON.stringify(val));
   }catch(e){}
+  // Auto-sync to cloud if connected
+  cloudSave(key, val);
+}
+
+// ==================== FIREBASE CLOUD SYNC ====================
+const firebaseConfig = {
+  apiKey: "AIzaSyBFwCNFcwmp4l3oUJYfiDMJaf6k58trNCA",
+  authDomain: "harshana-printers-quote-agent.firebaseapp.com",
+  projectId: "harshana-printers-quote-agent",
+  storageBucket: "harshana-printers-quote-agent.firebasestorage.app",
+  messagingSenderId: "603904302916",
+  appId: "1:603904302916:web:1cf084b346b0dd3942c111"
+};
+
+let firebaseApp = null;
+let db = null;
+let syncCode = '';
+let realtimeUnsubscribes = [];
+let _suppressRealtimeSync = false;
+
+try {
+  firebaseApp = firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+} catch(e) {
+  console.warn('Firebase init failed:', e);
+}
+
+function getSyncCode(){
+  return (syncCode || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+}
+
+// Save a key to Firestore under the sync code document
+async function cloudSave(key, val){
+  const code = getSyncCode();
+  if(!code || !db) return;
+  try{
+    _suppressRealtimeSync = true;
+    const docRef = db.collection('workspaces').doc(code);
+    await docRef.set({ [key]: JSON.stringify(val), lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    updateSyncStatus('✅ Synced just now');
+    setTimeout(()=> { _suppressRealtimeSync = false; }, 2000);
+  }catch(e){
+    console.warn('Cloud save failed:', e);
+    updateSyncStatus('⚠️ Sync failed: ' + e.message);
+    _suppressRealtimeSync = false;
+  }
+}
+
+// Load all data from Firestore for a sync code
+async function cloudLoad(code){
+  if(!code || !db) return null;
+  try{
+    const doc = await db.collection('workspaces').doc(code).get();
+    if(doc.exists) return doc.data();
+  }catch(e){
+    console.warn('Cloud load failed:', e);
+  }
+  return null;
+}
+
+// Apply cloud data to local state and re-render UI
+function applyCloudData(data){
+  if(!data) return;
+
+  if(data['print-agent-settings']){
+    try{
+      const s = JSON.parse(data['print-agent-settings']);
+      rateCard = s.rateCard || rateCard;
+      settings = {...settings, ...(s.settings || {})};
+      machines = s.machines || machines;
+      materials = s.materials || materials;
+      renderRateRows();
+      renderMachRows();
+      renderMatRows();
+      $('set-overhead').value = settings.overhead;
+      $('set-margin').value = settings.margin;
+      $('set-min').value = settings.min;
+      $('lbl-overhead').textContent = settings.overhead;
+      $('lbl-margin').textContent = settings.margin;
+      if(settings.apiKey) $('set-apikey').value = settings.apiKey;
+      localStorage.setItem('print-agent-settings', JSON.stringify(s));
+    }catch(e){}
+  }
+
+  if(data['print-agent-quotes']){
+    try{
+      quotes = JSON.parse(data['print-agent-quotes']);
+      renderHistory();
+      localStorage.setItem('print-agent-quotes', JSON.stringify(quotes));
+    }catch(e){}
+  }
+
+  if(data['print-agent-messages']){
+    try{
+      messages = JSON.parse(data['print-agent-messages']);
+      renderChat();
+      localStorage.setItem('print-agent-messages', JSON.stringify(messages));
+    }catch(e){}
+  }
+}
+
+// Set up real-time listener so changes from other devices appear live
+function setupRealtimeSync(){
+  // Unsubscribe any existing listeners
+  realtimeUnsubscribes.forEach(fn => fn());
+  realtimeUnsubscribes = [];
+
+  const code = getSyncCode();
+  if(!code || !db) return;
+
+  const unsub = db.collection('workspaces').doc(code).onSnapshot(snapshot => {
+    if(_suppressRealtimeSync) return;
+    if(!snapshot.exists) return;
+    const data = snapshot.data();
+    applyCloudData(data);
+    updateSyncStatus('✅ Synced — live');
+  }, err => {
+    console.warn('Realtime sync error:', err);
+    updateSyncStatus('⚠️ Live sync disconnected');
+  });
+  realtimeUnsubscribes.push(unsub);
+}
+
+function updateSyncStatus(msg){
+  const el = document.getElementById('sync-status');
+  if(el) el.textContent = msg;
+}
+
+// Full manual sync: push local data to cloud, then pull latest
+async function fullSync(){
+  const code = getSyncCode();
+  if(!code){
+    updateSyncStatus('⚠️ Enter a sync code first');
+    return;
+  }
+  if(!db){
+    updateSyncStatus('⚠️ Firebase not available');
+    return;
+  }
+  updateSyncStatus('🔄 Syncing...');
+
+  // Save sync code locally
+  localStorage.setItem('print-agent-synccode', syncCode);
+
+  // Push local data to cloud
+  await cloudSave('print-agent-settings', {rateCard, settings, machines, materials});
+  await cloudSave('print-agent-quotes', quotes);
+  await cloudSave('print-agent-messages', messages);
+
+  // Set up real-time listener
+  setupRealtimeSync();
+  updateSyncStatus('✅ Synced! This device is now connected.');
+  showToast('Cloud sync active!');
 }
 
 function showToast(msg){
@@ -1669,12 +1838,44 @@ $('btn-savesettings').addEventListener('click', async ()=>{
   $('lbl-margin').textContent = settings.margin;
 
   await storeSet('print-agent-settings', {rateCard, settings, machines, materials});
+
+  // Handle sync code
+  const newSyncCode = ($('set-synccode').value || '').trim();
+  if(newSyncCode && newSyncCode !== syncCode){
+    syncCode = newSyncCode;
+    localStorage.setItem('print-agent-synccode', syncCode);
+    await fullSync();
+  } else if(newSyncCode){
+    syncCode = newSyncCode;
+  }
+
   $('savedflag').textContent = 'Saved successfully';
   setTimeout(()=> $('savedflag').textContent='', 1500);
   $('modalbg').classList.remove('open');
   
   // Re-run live calculator with updated rate card
   calculateDeterministic();
+});
+
+// Sync Now button handler
+$('btn-sync-now').addEventListener('click', async ()=>{
+  syncCode = ($('set-synccode').value || '').trim();
+  if(!syncCode){
+    updateSyncStatus('⚠️ Enter a sync code first');
+    return;
+  }
+  localStorage.setItem('print-agent-synccode', syncCode);
+  
+  // First pull cloud data (in case phone has newer data)
+  updateSyncStatus('🔄 Pulling from cloud...');
+  const cloudData = await cloudLoad(getSyncCode());
+  if(cloudData){
+    applyCloudData(cloudData);
+    updateSyncStatus('🔄 Pulled cloud data, now pushing local...');
+  }
+  
+  // Then push local to cloud  
+  await fullSync();
 });
 
 function escapeHtml(s){
@@ -2227,8 +2428,26 @@ async function loadAll(){
   if(messages.length===0){
     pushMessage('agent', "Hi, I'm your print costing assistant for Harshana Printers.\n\n" +
       "• **⚡ Instant Calculator**: Use the tab above to price any job offline with 100% accurate math.\n" +
-      "• **💬 Free AI Chat**: To chat with AI, you can add a **100% free Google Gemini key** (from [Google AI Studio](https://aistudio.google.com/app/apikey)) in Settings!");
+      "• **💬 Free AI Chat**: To chat with AI, you can add a **100% free Google Gemini key** (from [Google AI Studio](https://aistudio.google.com/app/apikey)) in Settings!\n" +
+      "• **☁️ Cloud Sync**: Set a Sync Code in Settings to access your quotes from any device!");
     persistMessages();
+  }
+
+  // Load sync code and connect to cloud
+  const savedSyncCode = localStorage.getItem('print-agent-synccode');
+  if(savedSyncCode){
+    syncCode = savedSyncCode;
+    if($('set-synccode')) $('set-synccode').value = syncCode;
+    
+    // Pull cloud data and merge
+    const cloudData = await cloudLoad(getSyncCode());
+    if(cloudData){
+      applyCloudData(cloudData);
+      updateSyncStatus('✅ Synced from cloud');
+    }
+    
+    // Start real-time listener
+    setupRealtimeSync();
   }
 }
 
