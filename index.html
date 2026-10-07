@@ -405,7 +405,7 @@
           <div class="calc-card-title">4. Finishing & Operations</div>
           <div class="check-grid">
             <label class="check-label">
-              <input type="checkbox" id="calc-chk-cut" checked>
+              <input type="checkbox" id="calc-chk-cut">
               <span>Cutting / Trimming (Auto-scaled)</span>
             </label>
             <label class="check-label">
@@ -2100,9 +2100,10 @@ CRITICAL MATHEMATICAL RULES FOR RUNS > 5,000 SHEETS:
 OTHER RULES:
 1. Always complete the entire quotation: show imposition, calculation per set, SSCL tax, total, WhatsApp quotation, and \`\`\`quote block. Never stop halfway.
 2. Paper cost default: client supplied. Exclude paper unless asked.
-3. In the WhatsApp note, if paper is client supplied and cutting was included, write "*Plates, printing & cutting charges only". If without cutting, write "*Plates & printing charges only".
-4. Margin is already built in. Minimum job charge: LKR ${settings.min}.
-5. Format every number 1,000+ with commas (e.g. 30,000; 22,000; 84,000; 336,000).
+3. Cutting / trimming default: EXCLUDE cutting charges unless explicitly requested by the client. Only include cutting if the user specifies "with cutting" or "cutting included".
+4. In the WhatsApp note, if paper is client supplied and cutting was included, write "*Plates, printing & cutting charges only". If without cutting, write "*Plates & printing charges only".
+5. Margin is already built in. Minimum job charge: LKR ${settings.min}.
+6. Format every number 1,000+ with commas (e.g. 30,000; 22,000; 84,000; 336,000).
 6. Always end with a valid JSON in a \`\`\`quote block:
 \`\`\`quote
 {"jobName":"short job description","items":[{"label":"cost item name","qty":"basis","amount":number}],"sscl":number,"totalBeforeRounding":number,"total":number}
