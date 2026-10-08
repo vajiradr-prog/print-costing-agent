@@ -122,6 +122,37 @@
   .set-box{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:12px;margin-bottom:10px;position:relative;}
   .set-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;font-family:'Space Grotesk';font-weight:600;}
   .set-del{background:transparent;border:none;color:var(--danger);font-size:16px;cursor:pointer;padding:0 4px;}
+  .set-inputs-row{
+    display:grid;
+    grid-template-columns: minmax(75px, 1.2fr) 72px minmax(90px, 1.05fr) minmax(120px, 1.4fr) minmax(85px, 1.15fr);
+    gap:7px;
+    align-items:flex-end;
+  }
+  .set-inputs-row .form-col{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .set-inputs-row .form-col label{
+    font-size:10px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.25px;
+    font-weight:500;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .set-inputs-row .form-col input,
+  .set-inputs-row .form-col select{
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+    padding:6px 7px;
+    font-size:12px;
+    height:34px;
+  }
   .btn-addset{
     background:transparent;border:1px dashed var(--cyan);color:var(--cyan);
     border-radius:6px;padding:7px 12px;font-size:12px;cursor:pointer;width:100%;font-family:'Space Grotesk';
@@ -700,7 +731,7 @@ let currentCalculatedQuote = null;
 
 // Sets state for the deterministic calculator
 let calcSets = [
-  { id: 1, qty: 6000, colours: 4, sides: 'single', customImpRate: 0, customMachRate: 0 }
+  { id: 1, qty: 6000, setCount: 1, colours: 4, sides: 'single', customImpRate: 0, customMachRate: 0 }
 ];
 
 const $ = id => document.getElementById(id);
@@ -974,7 +1005,7 @@ function calculateDeterministic(){
   // Commercial options
   const applyOverhead = $('calc-chk-overhead').checked;
   const applyMargin = $('calc-chk-margin').checked;
-  const isRepeatedIdentical = $('calc-identical-repeat').checked && calcSets.length > 1;
+  const isRepeatedIdentical = $('calc-identical-repeat') ? $('calc-identical-repeat').checked : false;
 
   // Base machine and impression rates
   const baseImpRate = machine === 'K3' ? getRate('Impression rate (K3)', 1500) : getRate('Impression rate (K2)', 1500);
@@ -1001,6 +1032,7 @@ function calculateDeterministic(){
 
   calcSets.forEach((set, idx) => {
     const qty = Number(set.qty) || 0;
+    const count = Math.max(1, Number(set.setCount) || 1);
     const colours = Number(set.colours) || 4;
     const sides = set.sides || 'single';
     const customImp = Number(set.customImpRate) || 0;
@@ -1010,17 +1042,17 @@ function calculateDeterministic(){
     const machRateToUse = customMach > 0 ? customMach : baseMachRate;
     if(customImp > 0 && customImp !== baseImpRate) hasAnyDiscount = true;
 
-    // Press sheet count
+    // Press sheet count per set
     const pressSheets = isCutSheet ? qty : Math.ceil(qty / ups);
-    totalPieces += qty;
-    totalPressSheets += pressSheets;
+    totalPieces += (qty * count);
+    totalPressSheets += (pressSheets * count);
 
     // Full sheet conversion for cutting
     let fullSheets = pressSheets;
     if(material === 'Art paper' && machine === 'K3'){
       fullSheets = Math.ceil(pressSheets / 2);
     }
-    totalFullSheets += fullSheets;
+    totalFullSheets += (fullSheets * count);
 
     // Impression passes calculation
     const isDoubleSided = (sides === 'wt' || sides === 'fb');
@@ -1029,8 +1061,21 @@ function calculateDeterministic(){
     const machMultiplier = sides === 'fb' ? 2 : 1;
 
     // Check pre-fixed tier pricing (standard 4C runs <= 5,000 sheets without custom rate overrides)
+    // - Single side: run length is pressSheets (1 plate set) -> tierMultiplier = 1
+    // - Work & Turn (W&T): run length on 1 plate set is pressSheets * 2 impressions (1 plate set) -> tierMultiplier = 1
+    // - Front & Back (F&B): 2 independent plate sets (Front & Back), each printing pressSheets sheets (2 plate sets) -> tierMultiplier = 2
+    let tierSheets = pressSheets;
+    let tierMultiplier = 1;
+    if(sides === 'wt'){
+      tierSheets = pressSheets * 2;
+      tierMultiplier = 1;
+    } else if(sides === 'fb'){
+      tierSheets = pressSheets;
+      tierMultiplier = 2;
+    }
+
     const useTiers = $('calc-use-tiers') ? $('calc-use-tiers').checked : true;
-    const tierInfo = (useTiers && customImp === 0 && customMach === 0) ? getPreFixedTier(machine, isDoubleSided ? impSheetsCount : pressSheets) : null;
+    const tierInfo = (useTiers && customImp === 0 && customMach === 0) ? getPreFixedTier(machine, tierSheets) : null;
 
     let isTierApplied = false;
     let setSubtotal = 0;
@@ -1047,11 +1092,12 @@ function calculateDeterministic(){
 
     if (tierInfo) {
       isTierApplied = true;
-      impCost = tierInfo.price;
-      stdImpCost = tierInfo.price;
+      const baseTierTotal = tierInfo.price * tierMultiplier;
+      impCost = baseTierTotal;
+      stdImpCost = baseTierTotal;
       machCost = 0;
       stdMachCost = 0;
-      setSubtotal = tierInfo.price + setCutCost;
+      setSubtotal = baseTierTotal + setCutCost;
     } else {
       impCost = impBatches * impRateToUse * colours;
       stdImpCost = impBatches * baseImpRate * colours;
@@ -1062,12 +1108,24 @@ function calculateDeterministic(){
 
     const setStdSubtotal = isTierApplied ? setSubtotal : (stdImpCost + stdMachCost + setCutCost);
     const setSSCL = setSubtotal * 0.025;
-    const setTaxedTotal = setSubtotal + setSSCL;
-    const setStdTaxedTotal = setStdSubtotal * 1.025;
+    let setTaxedTotal = setSubtotal + setSSCL;
+    let setStdTaxedTotal = setStdSubtotal * 1.025;
+
+    // For F&B pre-fixed tier (2 plate sets), each side is an independent 4C tier run (e.g. 22,000 + tax = 23,000 per side)
+    // so the taxed total for Front & Back (2 sides) is exactly 2 × per-side taxed rounded total
+    if(isTierApplied && tierMultiplier === 2){
+      const perSideCut = setCutCost / 2;
+      const perSideSubtotal = tierInfo.price + perSideCut;
+      const perSideTaxed = perSideSubtotal * 1.025;
+      const perSideRounded = roundQuoteTotal(perSideTaxed);
+      setTaxedTotal = perSideRounded * 2;
+      setStdTaxedTotal = perSideRounded * 2;
+    }
 
     calculatedSets.push({
       setIndex: idx + 1,
       qty,
+      setCount: count,
       pressSheets,
       fullSheets,
       colours,
@@ -1088,36 +1146,39 @@ function calculateDeterministic(){
       stdTaxedTotal: setStdTaxedTotal
     });
 
-    const setLabel = calcSets.length > 1 ? `Set ${idx + 1} ` : '';
+    const setLabel = (calcSets.length > 1 || count > 1) ? `Set ${idx + 1}${count > 1 ? ` (${count} Sets)` : ''} ` : '';
     if(isTierApplied){
+      const tierQtyLabel = sides === 'fb' 
+        ? `Rs ${fmtNum(tierInfo.price)} × 2 (F&B)${count > 1 ? ` × ${count} sets` : ''}` 
+        : (count > 1 ? `Rs ${fmtNum(tierInfo.price)} × ${count} sets` : `Pre-fixed tier`);
       docketItems.push({
         label: `${setLabel}Base Production Tier (${machine}, ${fmtNum(tierInfo.tier)} sheets, ${colours}C${isDoubleSided ? (sides==='wt'?' W&T':' F&B') : ''})`,
-        qty: `Pre-fixed tier`,
-        amount: tierInfo.price
+        qty: tierQtyLabel,
+        amount: tierInfo.price * tierMultiplier * count
       });
       if(hasCutting && setCutCost > 0){
         docketItems.push({
           label: `${setLabel}Cutting & trimming (${material})`,
-          qty: `${Math.ceil(fullSheets / cutBatchSize)} batch (${fmtNum(fullSheets)} sheets)`,
-          amount: setCutCost
+          qty: count > 1 ? `${Math.ceil(fullSheets / cutBatchSize) * count} batches (${fmtNum(fullSheets * count)} sheets)` : `${Math.ceil(fullSheets / cutBatchSize)} batch (${fmtNum(fullSheets)} sheets)`,
+          amount: setCutCost * count
         });
       }
     } else {
       docketItems.push({
-        label: `${setLabel}Impressions (${machine}, ${colours}C, ${fmtNum(pressSheets)} sheets${isDoubleSided ? ' × 2 passes' : ''})`,
-        qty: `${impBatches}k × Rs ${fmtNum(impRateToUse)} × ${colours}C`,
-        amount: impCost
+        label: `${setLabel}Impressions (${machine}, ${colours}C, ${fmtNum(pressSheets)} sheets${count > 1 ? ` × ${count} sets` : ''}${isDoubleSided ? ' × 2 passes' : ''})`,
+        qty: `${impBatches * count}k × Rs ${fmtNum(impRateToUse)} × ${colours}C`,
+        amount: impCost * count
       });
       docketItems.push({
-        label: `${setLabel}Machine & Plates (${machine}, ${colours}C${sides==='fb'?' F&B 2-sets':sides==='wt'?' W&T 1-set':''})`,
-        qty: `Rs ${fmtNum(machRateToUse)} × ${colours}C${machMultiplier>1?' × 2':''}`,
-        amount: machCost
+        label: `${setLabel}Machine & Plates (${machine}, ${colours}C${sides==='fb'?' F&B 2-sets':sides==='wt'?' W&T 1-set':''}${count > 1 ? ` × ${count} sets` : ''})`,
+        qty: count > 1 ? `Rs ${fmtNum(machCost)} × ${count} setups` : `Rs ${fmtNum(machRateToUse)} × ${colours}C${machMultiplier>1?' × 2':''}`,
+        amount: machCost * count
       });
       if(hasCutting && setCutCost > 0){
         docketItems.push({
           label: `${setLabel}Cutting & trimming (${material})`,
-          qty: `${Math.ceil(fullSheets / cutBatchSize)} batch (${fmtNum(fullSheets)} sheets)`,
-          amount: setCutCost
+          qty: count > 1 ? `${Math.ceil(fullSheets / cutBatchSize) * count} batches (${fmtNum(fullSheets * count)} sheets)` : `${Math.ceil(fullSheets / cutBatchSize)} batch (${fmtNum(fullSheets)} sheets)`,
+          amount: setCutCost * count
         });
       }
     }
@@ -1190,31 +1251,23 @@ function calculateDeterministic(){
   // Standard total (in case discount was applied)
   let standardGrandTotal = finalTotal;
 
-  // When multiple sets are quoted, each set is priced and rounded independently as a separate line item.
+  // When multiple sets are quoted (or any set has setCount > 1), each set is priced and rounded independently as a separate line item.
   // The grand total MUST equal the exact mathematical sum of the individual rounded set lines
   // so that the printed total 100% matches what the client sees when adding up the lines!
-  if(calculatedSets.length > 1){
+  const totalSetsCount = calculatedSets.reduce((sum, s) => sum + (s.setCount || 1), 0);
+  const isMultiSetJob = calculatedSets.length > 1 || totalSetsCount > 1;
+
+  if(isMultiSetJob){
     const extraFinishing = (lamCost + foldCost + bindCost + designCost + labourCost + paperCost);
     const extraFinishingTaxed = extraFinishing > 0 ? roundQuoteTotal(extraFinishing * 1.025) : 0;
 
-    if(isRepeatedIdentical){
-      const perSetTaxed = roundQuoteTotal(calculatedSets[0].taxedTotal);
-      finalTotal = (perSetTaxed * calculatedSets.length) + extraFinishingTaxed;
-      if(hasAnyDiscount){
-        const stdPerSetTaxed = roundQuoteTotal(calculatedSets[0].stdTaxedTotal);
-        standardGrandTotal = (stdPerSetTaxed * calculatedSets.length) + extraFinishingTaxed;
-      } else {
-        standardGrandTotal = finalTotal;
-      }
+    const sumRoundedSets = calculatedSets.reduce((sum, s) => sum + (roundQuoteTotal(s.taxedTotal) * (s.setCount || 1)), 0);
+    finalTotal = sumRoundedSets + extraFinishingTaxed;
+    if(hasAnyDiscount){
+      const stdSumRoundedSets = calculatedSets.reduce((sum, s) => sum + (roundQuoteTotal(s.stdTaxedTotal) * (s.setCount || 1)), 0);
+      standardGrandTotal = stdSumRoundedSets + extraFinishingTaxed;
     } else {
-      const sumRoundedSets = calculatedSets.reduce((sum, s) => sum + roundQuoteTotal(s.taxedTotal), 0);
-      finalTotal = sumRoundedSets + extraFinishingTaxed;
-      if(hasAnyDiscount){
-        const stdSumRoundedSets = calculatedSets.reduce((sum, s) => sum + roundQuoteTotal(s.stdTaxedTotal), 0);
-        standardGrandTotal = stdSumRoundedSets + extraFinishingTaxed;
-      } else {
-        standardGrandTotal = finalTotal;
-      }
+      standardGrandTotal = finalTotal;
     }
   } else if(hasAnyDiscount){
     const stdSetSum = calculatedSets.reduce((sum, s) => sum + s.stdTaxedTotal, 0);
@@ -1273,15 +1326,78 @@ function calculateDeterministic(){
   });
 }
 
+function areSetsIdentical(a, b){
+  if(!a || !b) return false;
+  return a.qty === b.qty &&
+         a.pressSheets === b.pressSheets &&
+         a.colours === b.colours &&
+         a.sides === b.sides &&
+         (Number(a.customImpRate) || 0) === (Number(b.customImpRate) || 0) &&
+         (Number(a.customMachRate) || 0) === (Number(b.customMachRate) || 0) &&
+         a.taxedTotal === b.taxedTotal;
+}
+
+function getConsolidatedSets(calculatedSets, wantConsolidate){
+  if(!wantConsolidate || calculatedSets.length <= 1){
+    return calculatedSets.map(s => ({
+      ...s,
+      totalCount: s.setCount || 1,
+      isConsolidated: false
+    }));
+  }
+
+  // Check if any identical sets actually exist among the sets
+  let hasAnyIdenticalPairs = false;
+  for(let i = 0; i < calculatedSets.length; i++){
+    for(let j = i + 1; j < calculatedSets.length; j++){
+      if(areSetsIdentical(calculatedSets[i], calculatedSets[j])){
+        hasAnyIdenticalPairs = true;
+        break;
+      }
+    }
+    if(hasAnyIdenticalPairs) break;
+  }
+
+  // If NO identical sets are available, leave all sets as-is (do NOT consolidate)!
+  if(!hasAnyIdenticalPairs){
+    return calculatedSets.map(s => ({
+      ...s,
+      totalCount: s.setCount || 1,
+      isConsolidated: false
+    }));
+  }
+
+  // Group identical sets together
+  const groups = [];
+  calculatedSets.forEach(s => {
+    const existing = groups.find(g => areSetsIdentical(g.sample, s));
+    if(existing){
+      existing.totalCount += (s.setCount || 1);
+      existing.rawSetsCount += 1;
+      existing.isConsolidated = true;
+    } else {
+      groups.push({
+        ...s,
+        sample: s,
+        totalCount: s.setCount || 1,
+        rawSetsCount: 1,
+        isConsolidated: false
+      });
+    }
+  });
+
+  return groups;
+}
+
 function generateWhatsAppMessage(data){
   const { clientName, jobName, material, paperSource, isCutSheet, width, height, calculatedSets, hasCutting, finalTotal, standardGrandTotal, hasAnyDiscount, isRepeatedIdentical } = data;
   
   const lines = [];
   lines.push(`Quotation Request: *${clientName}*`);
 
-  const totalPieces = calculatedSets.reduce((s, c) => s + c.qty, 0);
+  const totalPieces = calculatedSets.reduce((s, c) => s + (c.qty * (c.setCount || 1)), 0);
   if(isCutSheet){
-    lines.push(`${width}''x${height}'' ${material}, ${fmtNum(totalPieces)} nos`);
+    lines.push(`${width}''x${height}'' ${material}`);
   } else {
     lines.push(`${jobName}, ${fmtNum(totalPieces)} nos`);
   }
@@ -1292,21 +1408,30 @@ function generateWhatsAppMessage(data){
   const cutSuffix = hasCutting ? ' with cutting' : '';
   lines.push(`${colours}C ${sidesDesc}${cutSuffix}`);
 
-  if(isRepeatedIdentical && calculatedSets.length > 1){
-    const count = calculatedSets.length;
-    const perSetTaxed = roundQuoteTotal(calculatedSets[0].taxedTotal);
-    lines.push(`${fmtNum(firstSet.pressSheets)}X${firstSet.colours}C - ${count} Sets`);
-    lines.push(`${fmtNum(perSetTaxed)}X${count}`);
-    lines.push(`Total - ${fmtNum(finalTotal)}/-`);
-  } else if(calculatedSets.length === 1){
-    const s = calculatedSets[0];
+  const groups = getConsolidatedSets(calculatedSets, isRepeatedIdentical);
+
+  if(groups.length === 1 && groups[0].totalCount > 1){
+    const grp = groups[0];
+    const sideSuffix = grp.sides === 'wt' ? 'X2 (W&T)' : grp.sides === 'fb' ? 'X2 (F&B)' : '';
+    const perSetTaxed = roundQuoteTotal(grp.taxedTotal);
+    const perSetToUse = hasAnyDiscount ? roundQuoteTotal(grp.stdTaxedTotal) : perSetTaxed;
+    lines.push(`${fmtNum(grp.pressSheets)}X${grp.colours}C${sideSuffix} - ${grp.totalCount} Sets`);
+    lines.push(`${fmtNum(perSetToUse)}X${grp.totalCount}`);
+    lines.push(`Total - ${fmtNum(hasAnyDiscount ? standardGrandTotal : finalTotal)}/-`);
+  } else if(groups.length === 1 && groups[0].totalCount === 1){
+    const s = groups[0];
     const sideSuffix = s.sides === 'wt' ? 'X2 (W&T)' : s.sides === 'fb' ? 'X2 (F&B)' : '';
     lines.push(`${fmtNum(s.pressSheets)}X${s.colours}C${sideSuffix} - ${fmtNum(hasAnyDiscount ? standardGrandTotal : finalTotal)}/-`);
   } else {
-    calculatedSets.forEach(s => {
-      const sideSuffix = s.sides === 'wt' ? 'X2 (W&T)' : s.sides === 'fb' ? 'X2 (F&B)' : '';
-      const setTaxedRounded = roundQuoteTotal(s.taxedTotal);
-      lines.push(`${fmtNum(s.pressSheets)}X${s.colours}C${sideSuffix} - ${fmtNum(setTaxedRounded)}/-`);
+    groups.forEach(g => {
+      const sideSuffix = g.sides === 'wt' ? 'X2 (W&T)' : g.sides === 'fb' ? 'X2 (F&B)' : '';
+      const setTaxedRounded = roundQuoteTotal(hasAnyDiscount ? g.stdTaxedTotal : g.taxedTotal);
+      if(g.totalCount > 1){
+        const lineSum = setTaxedRounded * g.totalCount;
+        lines.push(`${fmtNum(g.pressSheets)}X${g.colours}C${sideSuffix} - ${g.totalCount} Sets (${fmtNum(setTaxedRounded)}X${g.totalCount}) - ${fmtNum(lineSum)}/-`);
+      } else {
+        lines.push(`${fmtNum(g.pressSheets)}X${g.colours}C${sideSuffix} - ${fmtNum(setTaxedRounded)}/-`);
+      }
     });
     lines.push(`Total - ${fmtNum(hasAnyDiscount ? standardGrandTotal : finalTotal)}/-`);
   }
@@ -1330,50 +1455,53 @@ function renderBreakdown(sets, meta){
   const el = $('calc-breakdown');
   if(!el) return;
   let setsHtml = sets.map((s, idx) => {
+    const count = s.setCount || 1;
+    const setRoundedPrice = roundQuoteTotal(s.taxedTotal);
+    const lineTotal = setRoundedPrice * count;
     if(s.isTierApplied){
       return `
         <div class="step">
-          <span>Set ${idx+1}: ${fmtNum(s.qty)} pcs &rarr; <b>${fmtNum(s.pressSheets)} press sheets</b> on ${meta.machine}</span>
+          <span>Set ${idx+1}${count > 1 ? ` (${count} Sets)` : ''}: ${fmtNum(s.qty)} pcs &rarr; <b>${fmtNum(s.pressSheets)} press sheets</b> on ${meta.machine}</span>
           <span>${s.colours}C (${s.sides === 'single' ? '1-side' : s.sides === 'wt' ? 'W&T' : 'F&B'})</span>
         </div>
         <div class="step" style="color:var(--yellow);font-weight:500;">
-          <span>&bull; ⭐ Pre-Fixed Tier (${meta.machine} up to ${fmtNum(s.tierNum)} sheets, 4C)</span>
-          <span>Rs ${fmtNum(s.impCost)}</span>
+          <span>&bull; ⭐ Pre-Fixed Tier (${meta.machine} up to ${fmtNum(s.tierNum)} sheets, 4C)${s.sides === 'fb' ? ' &times; 2 (F&B)' : ''}${count > 1 ? ` &times; ${count} sets` : ''}</span>
+          <span>Rs ${fmtNum(s.impCost * count)}</span>
         </div>
         ${s.setCutCost > 0 ? `
         <div class="step">
-          <span>&bull; Cutting & trimming (${meta.material || 'Paper'})</span>
-          <span>Rs ${fmtNum(s.setCutCost)}</span>
+          <span>&bull; Cutting & trimming (${meta.material || 'Paper'})${count > 1 ? ` &times; ${count} sets` : ''}</span>
+          <span>Rs ${fmtNum(s.setCutCost * count)}</span>
         </div>` : ''}
-        ${sets.length > 1 ? `
+        ${(sets.length > 1 || count > 1) ? `
         <div class="step" style="color:var(--cyan);font-weight:600;padding-left:12px;">
-          <span>&bull; Set ${idx+1} Quoted Line Total (taxed & rounded)</span>
-          <span>Rs ${fmtNum(roundQuoteTotal(s.taxedTotal))}</span>
+          <span>&bull; Set ${idx+1} Quoted Line Total (taxed & rounded)${count > 1 ? ` (${fmtNum(setRoundedPrice)} &times; ${count})` : ''}</span>
+          <span>Rs ${fmtNum(lineTotal)}</span>
         </div>` : ''}
       `;
     }
     return `
       <div class="step">
-        <span>Set ${idx+1}: ${fmtNum(s.qty)} pcs &rarr; <b>${fmtNum(s.pressSheets)} press sheets</b> on ${meta.machine}</span>
+        <span>Set ${idx+1}${count > 1 ? ` (${count} Sets)` : ''}: ${fmtNum(s.qty)} pcs &rarr; <b>${fmtNum(s.pressSheets)} press sheets</b> on ${meta.machine}</span>
         <span>${s.colours}C (${s.sides === 'single' ? '1-side' : s.sides === 'wt' ? 'W&T' : 'F&B'})</span>
       </div>
       <div class="step">
-        <span>&bull; Impression: ${s.impBatches}k &times; Rs ${fmtNum(s.impRateToUse)} &times; ${s.colours}C</span>
-        <span>Rs ${fmtNum(s.impCost)}</span>
+        <span>&bull; Impression: ${s.impBatches * count}k &times; Rs ${fmtNum(s.impRateToUse)} &times; ${s.colours}C</span>
+        <span>Rs ${fmtNum(s.impCost * count)}</span>
       </div>
       <div class="step">
-        <span>&bull; Machine & Plates: Rs ${fmtNum(s.machCost)} (fixed)</span>
-        <span>Rs ${fmtNum(s.machCost)}</span>
+        <span>&bull; Machine & Plates: Rs ${fmtNum(s.machCost)}${count > 1 ? ` &times; ${count} setups` : ' (fixed)'}</span>
+        <span>Rs ${fmtNum(s.machCost * count)}</span>
       </div>
       ${s.setCutCost > 0 ? `
       <div class="step">
-        <span>&bull; Cutting & trimming (${meta.material || 'Paper'})</span>
-        <span>Rs ${fmtNum(s.setCutCost)}</span>
+        <span>&bull; Cutting & trimming (${meta.material || 'Paper'})${count > 1 ? ` &times; ${count} sets` : ''}</span>
+        <span>Rs ${fmtNum(s.setCutCost * count)}</span>
       </div>` : ''}
-      ${sets.length > 1 ? `
+      ${(sets.length > 1 || count > 1) ? `
       <div class="step" style="color:var(--cyan);font-weight:600;padding-left:12px;">
-        <span>&bull; Set ${idx+1} Quoted Line Total (taxed & rounded)</span>
-        <span>Rs ${fmtNum(roundQuoteTotal(s.taxedTotal))}</span>
+        <span>&bull; Set ${idx+1} Quoted Line Total (taxed & rounded)${count > 1 ? ` (${fmtNum(setRoundedPrice)} &times; ${count})` : ''}</span>
+        <span>Rs ${fmtNum(lineTotal)}</span>
       </div>` : ''}
     `;
   }).join('');
@@ -1396,7 +1524,7 @@ function renderBreakdown(sets, meta){
       <span>Rs ${fmtNum(meta.totalBeforeRounding)}</span>
     </div>
     <div class="total step">
-      <span>Final Quoted Total ${sets.length > 1 ? '(Sum of individual rounded sets)' : '(rounded to nearest 1,000; &le;100 lower)'}</span>
+      <span>Final Quoted Total ${(sets.length > 1 || sets.some(s => (s.setCount || 1) > 1)) ? '(Sum of individual rounded sets)' : '(rounded to nearest 1,000; &le;100 lower)'}</span>
       <span>Rs ${fmtNum(meta.finalTotal)}</span>
     </div>
   `;
@@ -1407,20 +1535,25 @@ function renderSetsUI(){
   const container = $('sets-container');
   container.innerHTML = '';
   calcSets.forEach((set, index) => {
+    const count = Math.max(1, Number(set.setCount) || 1);
     const div = document.createElement('div');
     div.className = 'set-box';
     div.innerHTML = `
       <div class="set-head">
-        <span>Set ${index + 1}</span>
+        <span>Set ${index + 1}${count > 1 ? ` &mdash; <span style="color:var(--cyan);font-weight:600;">${count} Sets</span>` : ''}</span>
         ${calcSets.length > 1 ? `<button type="button" class="set-del" data-delset="${set.id}">&times;</button>` : ''}
       </div>
-      <div class="form-row">
-        <div class="form-col" style="flex:1.2;">
-          <label>Quantity (pcs / sheets)</label>
+      <div class="set-inputs-row">
+        <div class="form-col">
+          <label title="Quantity (pcs / sheets)">Quantity (pcs)</label>
           <input type="number" data-id="${set.id}" data-f="qty" value="${set.qty}" min="1">
         </div>
         <div class="form-col">
-          <label>Colours</label>
+          <label style="color:var(--cyan);font-weight:600;" title="No. of Sets">No. of Sets</label>
+          <input type="number" data-id="${set.id}" data-f="setCount" value="${count}" min="1" step="1" class="mono" style="${count > 1 ? 'border-color:var(--cyan);color:var(--cyan);font-weight:700;' : ''}">
+        </div>
+        <div class="form-col">
+          <label title="Colours">Colours</label>
           <select data-id="${set.id}" data-f="colours">
             <option value="4" ${set.colours===4?'selected':''}>4C (Full Colour)</option>
             <option value="1" ${set.colours===1?'selected':''}>1C (Single Colour)</option>
@@ -1428,16 +1561,16 @@ function renderSetsUI(){
             <option value="5" ${set.colours===5?'selected':''}>5C</option>
           </select>
         </div>
-        <div class="form-col" style="flex:1.4;">
-          <label>Printing Sides</label>
+        <div class="form-col">
+          <label title="Printing Sides">Printing Sides</label>
           <select data-id="${set.id}" data-f="sides">
             <option value="single" ${set.sides==='single'?'selected':''}>Single Side</option>
-            <option value="wt" ${set.sides==='wt'?'selected':''}>Both Sides — Work & Turn (1 Plate Set)</option>
-            <option value="fb" ${set.sides==='fb'?'selected':''}>Both Sides — Front & Back (2 Plate Sets)</option>
+            <option value="wt" ${set.sides==='wt'?'selected':''}>Both Sides (W&T)</option>
+            <option value="fb" ${set.sides==='fb'?'selected':''}>Both Sides (F&B)</option>
           </select>
         </div>
         <div class="form-col">
-          <label>Discount Impression Rate</label>
+          <label title="Discount Impression Rate">Discount Rate</label>
           <input type="number" data-id="${set.id}" data-f="customImpRate" value="${set.customImpRate||''}" placeholder="Standard (1500)">
         </div>
       </div>
@@ -1451,7 +1584,28 @@ function renderSetsUI(){
       const f = e.target.dataset.f;
       const targetSet = calcSets.find(s => s.id === id);
       if(targetSet){
-        targetSet[f] = f === 'sides' ? e.target.value : Number(e.target.value) || 0;
+        if(f === 'sides'){
+          targetSet[f] = e.target.value;
+        } else if(f === 'setCount'){
+          const val = parseInt(e.target.value, 10);
+          targetSet[f] = (!isNaN(val) && val >= 1) ? val : 1;
+          const headSpan = e.target.closest('.set-box')?.querySelector('.set-head span');
+          if(headSpan){
+            const sIdx = calcSets.findIndex(s => s.id === id) + 1;
+            headSpan.innerHTML = `Set ${sIdx}${targetSet.setCount > 1 ? ` &mdash; <span style="color:var(--cyan);font-weight:600;">${targetSet.setCount} Sets</span>` : ''}`;
+          }
+          if(targetSet.setCount > 1){
+            e.target.style.borderColor = 'var(--cyan)';
+            e.target.style.color = 'var(--cyan)';
+            e.target.style.fontWeight = '700';
+          } else {
+            e.target.style.borderColor = '';
+            e.target.style.color = '';
+            e.target.style.fontWeight = '';
+          }
+        } else {
+          targetSet[f] = Number(e.target.value) || 0;
+        }
         calculateDeterministic();
       }
     });
@@ -1469,10 +1623,11 @@ function renderSetsUI(){
 
 $('btn-add-set').addEventListener('click', () => {
   const newId = (calcSets.length ? Math.max(...calcSets.map(s => s.id)) : 0) + 1;
-  const lastSet = calcSets[calcSets.length - 1] || { qty: 2500, colours: 4, sides: 'single' };
+  const lastSet = calcSets[calcSets.length - 1] || { qty: 2500, setCount: 1, colours: 4, sides: 'single' };
   calcSets.push({
     id: newId,
     qty: Math.max(500, Math.round(lastSet.qty / 2)),
+    setCount: 1,
     colours: lastSet.colours,
     sides: lastSet.sides,
     customImpRate: 0,
