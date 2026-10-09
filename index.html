@@ -967,7 +967,8 @@ function roundQuoteTotal(amount){
 // ==================== DETERMINISTIC CALCULATION ENGINE ====================
 function calculateDeterministic(){
   const clientName = ($('calc-client').value || 'Customer').trim();
-  const jobName = ($('calc-jobname').value || 'Print Job').trim();
+  const rawJobName = ($('calc-jobname').value || '').trim();
+  const jobName = rawJobName || 'Print Job';
   const material = $('calc-material').value;
   const paperSource = $('calc-papersource').value;
   const paperUnitCost = Number($('calc-papercost').value) || 0;
@@ -1278,7 +1279,7 @@ function calculateDeterministic(){
   // Format WhatsApp Output
   let waText = generateWhatsAppMessage({
     clientName,
-    jobName,
+    jobName: rawJobName,
     material,
     paperSource,
     isCutSheet,
@@ -1396,10 +1397,18 @@ function generateWhatsAppMessage(data){
   lines.push(`Quotation Request: *${clientName}*`);
 
   const totalPieces = calculatedSets.reduce((s, c) => s + (c.qty * (c.setCount || 1)), 0);
+  const cleanJobName = (jobName || '').trim();
   if(isCutSheet){
+    if(cleanJobName && cleanJobName.toLowerCase() !== 'print job'){
+      lines.push(cleanJobName);
+    }
     lines.push(`${width}''x${height}'' ${material}`);
   } else {
-    lines.push(`${jobName}, ${fmtNum(totalPieces)} nos`);
+    if(cleanJobName && cleanJobName.toLowerCase() !== 'print job'){
+      lines.push(`${cleanJobName}, ${fmtNum(totalPieces)} nos`);
+    } else {
+      lines.push(`${fmtNum(totalPieces)} nos`);
+    }
   }
 
   const firstSet = calculatedSets[0];
@@ -1412,7 +1421,7 @@ function generateWhatsAppMessage(data){
 
   if(groups.length === 1 && groups[0].totalCount > 1){
     const grp = groups[0];
-    const sideSuffix = grp.sides === 'wt' ? 'X2 (W&T)' : grp.sides === 'fb' ? 'X2 (F&B)' : '';
+    const sideSuffix = grp.sides === 'wt' ? 'X2 (W&T)' : grp.sides === 'fb' ? ' (F&B)' : '';
     const perSetTaxed = roundQuoteTotal(grp.taxedTotal);
     const perSetToUse = hasAnyDiscount ? roundQuoteTotal(grp.stdTaxedTotal) : perSetTaxed;
     lines.push(`${fmtNum(grp.pressSheets)}X${grp.colours}C${sideSuffix} - ${grp.totalCount} Sets`);
@@ -1420,11 +1429,11 @@ function generateWhatsAppMessage(data){
     lines.push(`Total - ${fmtNum(hasAnyDiscount ? standardGrandTotal : finalTotal)}/-`);
   } else if(groups.length === 1 && groups[0].totalCount === 1){
     const s = groups[0];
-    const sideSuffix = s.sides === 'wt' ? 'X2 (W&T)' : s.sides === 'fb' ? 'X2 (F&B)' : '';
+    const sideSuffix = s.sides === 'wt' ? 'X2 (W&T)' : s.sides === 'fb' ? ' (F&B)' : '';
     lines.push(`${fmtNum(s.pressSheets)}X${s.colours}C${sideSuffix} - ${fmtNum(hasAnyDiscount ? standardGrandTotal : finalTotal)}/-`);
   } else {
     groups.forEach(g => {
-      const sideSuffix = g.sides === 'wt' ? 'X2 (W&T)' : g.sides === 'fb' ? 'X2 (F&B)' : '';
+      const sideSuffix = g.sides === 'wt' ? 'X2 (W&T)' : g.sides === 'fb' ? ' (F&B)' : '';
       const setTaxedRounded = roundQuoteTotal(hasAnyDiscount ? g.stdTaxedTotal : g.taxedTotal);
       if(g.totalCount > 1){
         const lineSum = setTaxedRounded * g.totalCount;
@@ -2200,7 +2209,7 @@ CRITICAL MATHEMATICAL RULES FOR RUNS > 5,000 SHEETS:
          Quotation Request: *Expo Printers*
          13 Pages Set, 11,250 nos
          4C Both Sides (F&B)
-         11,250X4CX2 (F&B) - 173,000/-
+         11,250X4C (F&B) - 173,000/-
          Total - 173,000/-
          *Plates & printing charges only
 
@@ -2222,8 +2231,8 @@ CRITICAL MATHEMATICAL RULES FOR RUNS > 5,000 SHEETS:
    - ⚠️ CRITICAL ARITHMETIC RECONCILIATION RULE FOR MULTI-SET QUOTES:
      When displaying multiple set lines in WhatsApp, THE GRAND TOTAL AT THE BOTTOM MUST BE THE EXACT MATHEMATICAL SUM OF THE DISPLAYED LINE ITEMS!
      Example with different sets (Set 1: 93,000/-, Set 2: 93,000/-, Set 3: 36,000/-):
-     - Line 1: 5,000X4CX2 (F&B) - 93,000/-
-     - Line 2: 5,000X4CX2 (F&B) - 93,000/-
+     - Line 1: 5,000X4C (F&B) - 93,000/-
+     - Line 2: 5,000X4C (F&B) - 93,000/-
      - Line 3: 1,250X4CX2 (W&T) - 36,000/-
      - Exact Sum: 93,000 + 93,000 + 36,000 = 222,000/-!
      - WhatsApp Output MUST state:
