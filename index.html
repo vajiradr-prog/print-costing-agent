@@ -124,7 +124,7 @@
   .set-del{background:transparent;border:none;color:var(--danger);font-size:16px;cursor:pointer;padding:0 4px;}
   .set-inputs-row{
     display:grid;
-    grid-template-columns: minmax(75px, 1.2fr) 72px minmax(90px, 1.05fr) minmax(120px, 1.4fr) minmax(85px, 1.15fr);
+    grid-template-columns: minmax(75px, 1.2fr) 72px minmax(96px, 1.1fr) minmax(120px, 1.4fr) minmax(85px, 1.15fr);
     gap:7px;
     align-items:flex-end;
   }
@@ -1091,9 +1091,16 @@ function calculateDeterministic(){
       setCutCost = setCutBatches * cutRate;
     }
 
+    const washFeeThisSet = colours > 4 ? (colours - 4) * 3000 * machMultiplier : 0;
     if (tierInfo) {
       isTierApplied = true;
-      const baseTierTotal = tierInfo.price * tierMultiplier;
+      let effectiveTierPrice = tierInfo.price;
+      if (colours > 4) {
+        const specialColours = colours - 4;
+        const perColourBase = tierInfo.price / 4;
+        effectiveTierPrice = (perColourBase * colours) + (specialColours * 3000);
+      }
+      const baseTierTotal = effectiveTierPrice * tierMultiplier;
       impCost = baseTierTotal;
       stdImpCost = baseTierTotal;
       machCost = 0;
@@ -1102,8 +1109,8 @@ function calculateDeterministic(){
     } else {
       impCost = impBatches * impRateToUse * colours;
       stdImpCost = impBatches * baseImpRate * colours;
-      machCost = machRateToUse * colours * machMultiplier;
-      stdMachCost = baseMachRate * colours * machMultiplier;
+      machCost = (machRateToUse * colours * machMultiplier) + washFeeThisSet;
+      stdMachCost = (baseMachRate * colours * machMultiplier) + washFeeThisSet;
       setSubtotal = impCost + machCost + setCutCost;
     }
 
@@ -1112,11 +1119,16 @@ function calculateDeterministic(){
     let setTaxedTotal = setSubtotal + setSSCL;
     let setStdTaxedTotal = setStdSubtotal * 1.025;
 
-    // For F&B pre-fixed tier (2 plate sets), each side is an independent 4C tier run (e.g. 22,000 + tax = 23,000 per side)
-    // so the taxed total for Front & Back (2 sides) is exactly 2 × per-side taxed rounded total
+    // For F&B pre-fixed tier (2 plate sets), each side is an independent tier run
     if(isTierApplied && tierMultiplier === 2){
       const perSideCut = setCutCost / 2;
-      const perSideSubtotal = tierInfo.price + perSideCut;
+      let perSideTier = tierInfo.price;
+      if (colours > 4) {
+        const specialColours = colours - 4;
+        const perColourBase = tierInfo.price / 4;
+        perSideTier = (perColourBase * colours) + (specialColours * 3000);
+      }
+      const perSideSubtotal = perSideTier + perSideCut;
       const perSideTaxed = perSideSubtotal * 1.025;
       const perSideRounded = roundQuoteTotal(perSideTaxed);
       setTaxedTotal = perSideRounded * 2;
@@ -1141,6 +1153,8 @@ function calculateDeterministic(){
       setCutCost,
       isTierApplied,
       tierNum: tierInfo ? tierInfo.tier : null,
+      tierNumPrice: tierInfo ? tierInfo.price : null,
+      specialWashCost: isTierApplied ? 0 : washFeeThisSet,
       subtotal: setSubtotal,
       sscl: setSSCL,
       taxedTotal: setTaxedTotal,
@@ -1149,13 +1163,16 @@ function calculateDeterministic(){
 
     const setLabel = (calcSets.length > 1 || count > 1) ? `Set ${idx + 1}${count > 1 ? ` (${count} Sets)` : ''} ` : '';
     if(isTierApplied){
+      const effectiveTierPrice = (colours > 4) 
+        ? ((tierInfo.price / 4 * colours) + ((colours - 4) * 3000))
+        : tierInfo.price;
       const tierQtyLabel = sides === 'fb' 
-        ? `Rs ${fmtNum(tierInfo.price)} × 2 (F&B)${count > 1 ? ` × ${count} sets` : ''}` 
-        : (count > 1 ? `Rs ${fmtNum(tierInfo.price)} × ${count} sets` : `Pre-fixed tier`);
+        ? `Rs ${fmtNum(effectiveTierPrice)} × 2 (F&B)${count > 1 ? ` × ${count} sets` : ''}` 
+        : (count > 1 ? `Rs ${fmtNum(effectiveTierPrice)} × ${count} sets` : `Pre-fixed tier`);
       docketItems.push({
         label: `${setLabel}Base Production Tier (${machine}, ${fmtNum(tierInfo.tier)} sheets, ${colours}C${isDoubleSided ? (sides==='wt'?' W&T':' F&B') : ''})`,
         qty: tierQtyLabel,
-        amount: tierInfo.price * tierMultiplier * count
+        amount: effectiveTierPrice * tierMultiplier * count
       });
       if(hasCutting && setCutCost > 0){
         docketItems.push({
@@ -1170,11 +1187,19 @@ function calculateDeterministic(){
         qty: `${impBatches * count}k × Rs ${fmtNum(impRateToUse)} × ${colours}C`,
         amount: impCost * count
       });
+      const baseMachOnly = machCost - washFeeThisSet;
       docketItems.push({
         label: `${setLabel}Machine & Plates (${machine}, ${colours}C${sides==='fb'?' F&B 2-sets':sides==='wt'?' W&T 1-set':''}${count > 1 ? ` × ${count} sets` : ''})`,
-        qty: count > 1 ? `Rs ${fmtNum(machCost)} × ${count} setups` : `Rs ${fmtNum(machRateToUse)} × ${colours}C${machMultiplier>1?' × 2':''}`,
-        amount: machCost * count
+        qty: count > 1 ? `Rs ${fmtNum(baseMachOnly)} × ${count} setups` : `Rs ${fmtNum(machRateToUse)} × ${colours}C${machMultiplier>1?' × 2':''}`,
+        amount: baseMachOnly * count
       });
+      if(washFeeThisSet > 0){
+        docketItems.push({
+          label: `${setLabel}Special colour machine wash (${colours - 4} colour${(colours - 4)>1?'s':''}${sides==='fb'?' × 2 setups':''})`,
+          qty: `${(colours - 4) * machMultiplier * count} wash${((colours - 4) * machMultiplier * count)>1?'es':''} @ Rs 3,000`,
+          amount: washFeeThisSet * count
+        });
+      }
       if(hasCutting && setCutCost > 0){
         docketItems.push({
           label: `${setLabel}Cutting & trimming (${material})`,
@@ -1457,6 +1482,11 @@ function generateWhatsAppMessage(data){
     }
   }
 
+  const hasSpecialColours = calculatedSets.some(s => (Number(s.colours) || 0) > 4);
+  if(hasSpecialColours){
+    lines.push(`*SP inks should be provided`);
+  }
+
   return lines.join('\n');
 }
 
@@ -1468,13 +1498,16 @@ function renderBreakdown(sets, meta){
     const setRoundedPrice = roundQuoteTotal(s.taxedTotal);
     const lineTotal = setRoundedPrice * count;
     if(s.isTierApplied){
+      const tierCalcDesc = s.colours > 4 
+        ? ` (Rs ${fmtNum(s.tierNumPrice)}/4 &times; ${s.colours}C + Rs ${fmtNum((s.colours - 4) * 3000)} wash)` 
+        : '';
       return `
         <div class="step">
           <span>Set ${idx+1}${count > 1 ? ` (${count} Sets)` : ''}: ${fmtNum(s.qty)} pcs &rarr; <b>${fmtNum(s.pressSheets)} press sheets</b> on ${meta.machine}</span>
           <span>${s.colours}C (${s.sides === 'single' ? '1-side' : s.sides === 'wt' ? 'W&T' : 'F&B'})</span>
         </div>
         <div class="step" style="color:var(--yellow);font-weight:500;">
-          <span>&bull; ⭐ Pre-Fixed Tier (${meta.machine} up to ${fmtNum(s.tierNum)} sheets, 4C)${s.sides === 'fb' ? ' &times; 2 (F&B)' : ''}${count > 1 ? ` &times; ${count} sets` : ''}</span>
+          <span>&bull; ⭐ Pre-Fixed Tier (${meta.machine} up to ${fmtNum(s.tierNum)} sheets, ${s.colours}C)${s.sides === 'fb' ? ' &times; 2 (F&B)' : ''}${count > 1 ? ` &times; ${count} sets` : ''}${tierCalcDesc}</span>
           <span>Rs ${fmtNum(s.impCost * count)}</span>
         </div>
         ${s.setCutCost > 0 ? `
@@ -1489,6 +1522,8 @@ function renderBreakdown(sets, meta){
         </div>` : ''}
       `;
     }
+    const washFeeThisSet = s.specialWashCost || 0;
+    const baseMachOnly = s.machCost - washFeeThisSet;
     return `
       <div class="step">
         <span>Set ${idx+1}${count > 1 ? ` (${count} Sets)` : ''}: ${fmtNum(s.qty)} pcs &rarr; <b>${fmtNum(s.pressSheets)} press sheets</b> on ${meta.machine}</span>
@@ -1499,9 +1534,14 @@ function renderBreakdown(sets, meta){
         <span>Rs ${fmtNum(s.impCost * count)}</span>
       </div>
       <div class="step">
-        <span>&bull; Machine & Plates: Rs ${fmtNum(s.machCost)}${count > 1 ? ` &times; ${count} setups` : ' (fixed)'}</span>
-        <span>Rs ${fmtNum(s.machCost * count)}</span>
+        <span>&bull; Machine & Plates: Rs ${fmtNum(baseMachOnly)}${count > 1 ? ` &times; ${count} setups` : ' (fixed)'}</span>
+        <span>Rs ${fmtNum(baseMachOnly * count)}</span>
       </div>
+      ${washFeeThisSet > 0 ? `
+      <div class="step">
+        <span>&bull; Special Colour Wash (${s.colours - 4} colour${(s.colours - 4)>1?'s':''}${s.sides === 'fb' ? ' &times; 2 setups' : ''}): Rs 3,000 each</span>
+        <span>Rs ${fmtNum(washFeeThisSet * count)}</span>
+      </div>` : ''}
       ${s.setCutCost > 0 ? `
       <div class="step">
         <span>&bull; Cutting & trimming (${meta.material || 'Paper'})${count > 1 ? ` &times; ${count} sets` : ''}</span>
@@ -1563,12 +1603,18 @@ function renderSetsUI(){
         </div>
         <div class="form-col">
           <label title="Colours">Colours</label>
-          <select data-id="${set.id}" data-f="colours">
-            <option value="4" ${set.colours===4?'selected':''}>4C (Full Colour)</option>
-            <option value="1" ${set.colours===1?'selected':''}>1C (Single Colour)</option>
-            <option value="2" ${set.colours===2?'selected':''}>2C (Two Colour)</option>
-            <option value="5" ${set.colours===5?'selected':''}>5C</option>
-          </select>
+          <div style="display:flex;gap:3px;align-items:center;">
+            <input type="number" data-id="${set.id}" data-f="colours-input" value="${set.colours}" min="1" max="12" step="1" class="mono" style="width:38px;min-width:34px;padding:6px 2px;text-align:center;font-weight:600;" title="Type number of colours">
+            <select data-id="${set.id}" data-f="colours" style="flex:1;min-width:0;padding:6px 2px;" title="Select preset colours">
+              <option value="4" ${set.colours===4?'selected':''}>4C</option>
+              <option value="1" ${set.colours===1?'selected':''}>1C</option>
+              <option value="2" ${set.colours===2?'selected':''}>2C</option>
+              <option value="3" ${set.colours===3?'selected':''}>3C</option>
+              <option value="5" ${set.colours===5?'selected':''}>5C</option>
+              <option value="6" ${set.colours===6?'selected':''}>6C</option>
+              ${![1,2,3,4,5,6].includes(set.colours) ? `<option value="${set.colours}" selected>${set.colours}C</option>` : ''}
+            </select>
+          </div>
         </div>
         <div class="form-col">
           <label title="Printing Sides">Printing Sides</label>
@@ -1611,6 +1657,24 @@ function renderSetsUI(){
             e.target.style.borderColor = '';
             e.target.style.color = '';
             e.target.style.fontWeight = '';
+          }
+        } else if(f === 'colours'){
+          targetSet.colours = parseInt(e.target.value, 10) || 4;
+          const numInp = e.target.closest('.form-col')?.querySelector('[data-f="colours-input"]');
+          if(numInp) numInp.value = targetSet.colours;
+        } else if(f === 'colours-input'){
+          const val = parseInt(e.target.value, 10);
+          targetSet.colours = (!isNaN(val) && val >= 1) ? val : 4;
+          const sel = e.target.closest('.form-col')?.querySelector('select[data-f="colours"]');
+          if(sel){
+            sel.value = targetSet.colours;
+            if(!sel.value || sel.value != targetSet.colours){
+              const opt = document.createElement('option');
+              opt.value = targetSet.colours;
+              opt.textContent = `${targetSet.colours}C`;
+              opt.selected = true;
+              sel.appendChild(opt);
+            }
           }
         } else {
           targetSet[f] = Number(e.target.value) || 0;
@@ -2172,9 +2236,13 @@ RULES FOR APPLYING PRE-FIXED TIERS (PRIORITIZE THIS FOR JOBS <= 5,000 SHEETS):
    - 3,001 to 4,000 sheets -> 4,000 tier.
    - 4,001 to 5,000 sheets -> 5,000 tier.
 3. If double-sided Work & Turn (W&T), sheets pass through the press twice (press sheets × 2 passes). Use the tier matching the total passes if <= 5,000.
-4. Add any requested extras on top of the base tier: cutting/trimming (scaled per paper/board type from rate card), finishing (lamination, binding, folding, design), or paper cost (if Harshana supplied).
-5. Add SSCL tax (2.5%) on top of the base tier price + extras.
-6. ROUNDING RULE AFTER TAX (CRITICAL):
+4. When printing more than 4C (e.g. 5C = 1 special colour, 6C = 2 special colours):
+   - Pre-fixed tier prices are calibrated for 4C.
+   - For > 4C up to 5,000 sheets, calculate as: (Tier Price / 4) × colours + ((colours - 4) × 3,000 machine wash).
+   - Example: 5,000 sheets 5C on K3: (45,000 / 4) × 5 = 56,250 + 3,000 = LKR 59,250/- base tier price.
+5. Add any requested extras on top of the base tier: cutting/trimming (scaled per paper/board type from rate card), finishing (lamination, binding, folding, design), or paper cost (if Harshana supplied).
+6. Add SSCL tax (2.5%) on top of the base tier price + extras.
+7. ROUNDING RULE AFTER TAX (CRITICAL):
    When rounding the final amount after SSCL tax to the nearest LKR 1,000:
    - If the excess remainder over the thousand (amount % 1000) is up to LKR 100 (<= 100), always round DOWN to the lower thousand figure.
      Ex: After-tax amount LKR 56,023/- -> final amount is LKR 56,000/- (excess 23 <= 100).
@@ -2261,11 +2329,20 @@ CRITICAL MATHEMATICAL RULES FOR RUNS > 5,000 SHEETS:
      * If 11,250 is the press sheet count for a single form/leaf, the price is LKR 173,000/-.
      * If there are 13 separate forms/leaves running 11,250 sheets each (e.g. a 13-sheet calendar), clearly specify: "Per leaf/form: LKR 173,000/-. Total for 13 leaves: 173,000 × 13 = LKR 2,249,000/-".
 
+6. SPECIAL COLOURS (> 4C) AND MACHINE WASH FEE:
+   - For jobs with more than 4 colours:
+     * Standard offset uses 4C (CMYK). Any colour above 4C (e.g. 5C = 1 special colour, 6C = 2 special colours) is a spot/special colour requiring machine wash.
+     * Machine wash fee is LKR 3,000 per special colour per setup (multiplied by 2 for F&B setups).
+     * For runs <= 5,000 sheets using pre-fixed tier: (Tier / 4) × colours + ((colours - 4) × 3,000).
+       Example: 5,000 sheets 5C on K3: (45,000 / 4) × 5 = 56,250 + 3,000 = LKR 59,250/- base rate (+ tax & rounding -> 61,000/-).
+     * For runs > 5,000 sheets: normal impressions + normal machine plates + LKR 3,000 per special colour (× 2 setups for F&B).
+     * In WhatsApp quotation for special colour jobs (> 4C), ALWAYS include "*SP inks should be provided" after "*Plates & printing charges only".
+
 OTHER RULES:
 1. Always complete the entire quotation: show imposition, calculation per set, SSCL tax, total, WhatsApp quotation, and \`\`\`quote block. Never stop halfway.
 2. Paper cost default: client supplied. Exclude paper unless asked.
 3. Cutting / trimming default: EXCLUDE cutting charges unless explicitly requested by the client. Only include cutting if the user specifies "with cutting" or "cutting included".
-4. In the WhatsApp note, if paper is client supplied and cutting was included, write "*Plates, printing & cutting charges only". If without cutting, write "*Plates & printing charges only".
+4. In the WhatsApp note, if paper is client supplied and cutting was included, write "*Plates, printing & cutting charges only". If without cutting, write "*Plates & printing charges only". For special colour jobs (> 4C), ALWAYS append "*SP inks should be provided" on the next line.
 5. Margin is already built in. Minimum job charge: LKR ${settings.min}.
 6. Format every number 1,000+ with commas (e.g. 30,000; 22,000; 84,000; 336,000).
 6. Always end with a valid JSON in a \`\`\`quote block:
