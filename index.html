@@ -1076,7 +1076,8 @@ function calculateDeterministic(){
     }
 
     const useTiers = $('calc-use-tiers') ? $('calc-use-tiers').checked : true;
-    const tierInfo = (useTiers && customImp === 0 && customMach === 0) ? getPreFixedTier(machine, tierSheets) : null;
+    const stdTierInfo = useTiers ? getPreFixedTier(machine, tierSheets) : null;
+    const tierInfo = (stdTierInfo && customImp === 0 && customMach === 0) ? stdTierInfo : null;
 
     let isTierApplied = false;
     let setSubtotal = 0;
@@ -1092,48 +1093,52 @@ function calculateDeterministic(){
     }
 
     const washFeeThisSet = colours > 4 ? (colours - 4) * 3000 * machMultiplier : 0;
+
+    // Standard baseline cost (what the job costs at normal pricing before discount)
+    let setStdSubtotal = 0;
+    let setStdTaxedTotal = 0;
+    if(stdTierInfo){
+      let stdEffectiveTierPrice = stdTierInfo.price;
+      if (colours > 4) {
+        const specialColours = colours - 4;
+        const perColourBase = stdTierInfo.price / 4;
+        stdEffectiveTierPrice = (perColourBase * colours) + (specialColours * 3000);
+      }
+      const stdBaseTierTotal = stdEffectiveTierPrice * tierMultiplier;
+      stdImpCost = stdBaseTierTotal;
+      stdMachCost = 0;
+      setStdSubtotal = stdBaseTierTotal + setCutCost;
+      setStdTaxedTotal = setStdSubtotal * 1.025;
+      if(tierMultiplier === 2){
+        const perSideCut = setCutCost / 2;
+        const perSideStdSubtotal = stdEffectiveTierPrice + perSideCut;
+        const perSideStdTaxed = perSideStdSubtotal * 1.025;
+        const perSideStdRounded = roundQuoteTotal(perSideStdTaxed);
+        setStdTaxedTotal = perSideStdRounded * 2;
+      }
+    } else {
+      stdImpCost = impBatches * baseImpRate * colours;
+      stdMachCost = (baseMachRate * colours * machMultiplier) + washFeeThisSet;
+      setStdSubtotal = stdImpCost + stdMachCost + setCutCost;
+      setStdTaxedTotal = setStdSubtotal * 1.025;
+    }
+
+    // Actual quoted / discounted cost
     if (tierInfo) {
       isTierApplied = true;
-      let effectiveTierPrice = tierInfo.price;
-      if (colours > 4) {
-        const specialColours = colours - 4;
-        const perColourBase = tierInfo.price / 4;
-        effectiveTierPrice = (perColourBase * colours) + (specialColours * 3000);
-      }
-      const baseTierTotal = effectiveTierPrice * tierMultiplier;
-      impCost = baseTierTotal;
-      stdImpCost = baseTierTotal;
+      impCost = stdImpCost;
       machCost = 0;
-      stdMachCost = 0;
-      setSubtotal = baseTierTotal + setCutCost;
+      setSubtotal = setStdSubtotal;
+      setTaxedTotal = setStdTaxedTotal;
     } else {
       impCost = impBatches * impRateToUse * colours;
-      stdImpCost = impBatches * baseImpRate * colours;
       machCost = (machRateToUse * colours * machMultiplier) + washFeeThisSet;
-      stdMachCost = (baseMachRate * colours * machMultiplier) + washFeeThisSet;
       setSubtotal = impCost + machCost + setCutCost;
+      const setSSCL = setSubtotal * 0.025;
+      setTaxedTotal = setSubtotal + setSSCL;
     }
 
-    const setStdSubtotal = isTierApplied ? setSubtotal : (stdImpCost + stdMachCost + setCutCost);
     const setSSCL = setSubtotal * 0.025;
-    let setTaxedTotal = setSubtotal + setSSCL;
-    let setStdTaxedTotal = setStdSubtotal * 1.025;
-
-    // For F&B pre-fixed tier (2 plate sets), each side is an independent tier run
-    if(isTierApplied && tierMultiplier === 2){
-      const perSideCut = setCutCost / 2;
-      let perSideTier = tierInfo.price;
-      if (colours > 4) {
-        const specialColours = colours - 4;
-        const perColourBase = tierInfo.price / 4;
-        perSideTier = (perColourBase * colours) + (specialColours * 3000);
-      }
-      const perSideSubtotal = perSideTier + perSideCut;
-      const perSideTaxed = perSideSubtotal * 1.025;
-      const perSideRounded = roundQuoteTotal(perSideTaxed);
-      setTaxedTotal = perSideRounded * 2;
-      setStdTaxedTotal = perSideRounded * 2;
-    }
 
     calculatedSets.push({
       setIndex: idx + 1,
@@ -1289,16 +1294,20 @@ function calculateDeterministic(){
 
     const sumRoundedSets = calculatedSets.reduce((sum, s) => sum + (roundQuoteTotal(s.taxedTotal) * (s.setCount || 1)), 0);
     finalTotal = sumRoundedSets + extraFinishingTaxed;
-    if(hasAnyDiscount){
-      const stdSumRoundedSets = calculatedSets.reduce((sum, s) => sum + (roundQuoteTotal(s.stdTaxedTotal) * (s.setCount || 1)), 0);
-      standardGrandTotal = stdSumRoundedSets + extraFinishingTaxed;
-    } else {
-      standardGrandTotal = finalTotal;
-    }
-  } else if(hasAnyDiscount){
+    const stdSumRoundedSets = calculatedSets.reduce((sum, s) => sum + (roundQuoteTotal(s.stdTaxedTotal) * (s.setCount || 1)), 0);
+    standardGrandTotal = stdSumRoundedSets + extraFinishingTaxed;
+  } else {
     const stdSetSum = calculatedSets.reduce((sum, s) => sum + s.stdTaxedTotal, 0);
     const stdBeforeRound = stdSetSum + (lamCost + foldCost + bindCost + designCost + labourCost + paperCost) * 1.025;
     standardGrandTotal = roundQuoteTotal(stdBeforeRound);
+  }
+
+  // Active discount whenever baseline standard exceeds the quoted total
+  if(standardGrandTotal > finalTotal){
+    hasAnyDiscount = true;
+  } else {
+    hasAnyDiscount = false;
+    standardGrandTotal = finalTotal;
   }
 
   // Format WhatsApp Output
