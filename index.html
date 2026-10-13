@@ -211,6 +211,27 @@
     font-size:11.5px;font-family:'Space Grotesk';font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;
   }
 
+  /* Inactive Mode & New Quote Banner */
+  .btn-newquote{
+    background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);color:var(--paper);
+    border-radius:6px;padding:4px 10px;font-size:11.5px;font-family:'Space Grotesk';font-weight:600;
+    cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s;
+  }
+  .btn-newquote:hover{background:rgba(34,184,196,0.15);border-color:var(--cyan);color:var(--cyan);}
+  
+  .prev-quote-banner{
+    background:rgba(24,30,38,0.92);border:1px solid rgba(255,255,255,0.1);border-left:3px solid var(--cyan);
+    border-radius:6px;padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;
+    font-size:12px;
+  }
+  .prev-quote-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .btn-xs{
+    background:rgba(255,255,255,0.08);border:1px solid var(--line);color:var(--paper);
+    border-radius:4px;padding:3px 8px;font-size:11px;font-family:'Space Grotesk';cursor:pointer;transition:all .15s;
+  }
+  .btn-xs:hover{background:rgba(34,184,196,0.2);border-color:var(--cyan);color:var(--cyan);}
+  input::placeholder{color:rgba(255,255,255,0.32) !important;font-style:italic;}
+
   .histlist{max-height:220px;overflow-y:auto;}
   .histitem{padding:9px 16px;border-bottom:1px solid var(--line);cursor:pointer;font-size:12px;display:flex;justify-content:space-between;transition:background .15s;}
   .histitem:hover{background:var(--panel2);}
@@ -313,20 +334,35 @@
       <!-- VIEW 1: Deterministic Calculator -->
       <div id="view-calc" class="calc-container">
         
+        <!-- Inactive Last Quote Reference Banner -->
+        <div id="prev-quote-reference" class="prev-quote-banner" style="display:none;">
+          <div class="prev-quote-info">
+            <span class="badge" style="background:rgba(255,255,255,0.08);color:var(--muted);font-weight:600;">📋 Last Quote (Inactive Reference)</span>
+            <span id="prev-quote-summary" style="font-size:12px;color:var(--paper);"></span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button type="button" class="btn-xs" id="btn-restore-prev" title="Load previous quote values into form">⎘ Restore</button>
+            <button type="button" class="btn-xs" id="btn-dismiss-prev" title="Dismiss reference">&times;</button>
+          </div>
+        </div>
+
         <!-- Job Basics Card -->
         <div class="calc-card">
           <div class="calc-card-title">
             <span>1. Job & Client Details</span>
-            <span id="detected-machine-badge" class="badge badge-k3">Machine: K3 (24x18)</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button type="button" class="btn-newquote" id="btn-new-quote" title="Clear active data and start fresh quote">🔄 New Quote</button>
+              <span id="detected-machine-badge" class="badge badge-k3">Machine: K3 (24x18)</span>
+            </div>
           </div>
           <div class="form-row">
             <div class="form-col" style="flex:1.2;">
               <label>Client Name</label>
-              <input type="text" id="calc-client" value="ABC Traders" placeholder="e.g. ABC Traders">
+              <input type="text" id="calc-client" value="" placeholder="e.g. Printora">
             </div>
             <div class="form-col" style="flex:1.5;">
               <label>Job Description / Item</label>
-              <input type="text" id="calc-jobname" value="A5 leaflets 100gsm Art Paper" placeholder="e.g. A5 leaflets, Brochures">
+              <input type="text" id="calc-jobname" value="" placeholder="e.g. Label Print">
             </div>
           </div>
           <div class="form-row">
@@ -380,11 +416,11 @@
           <div class="form-row">
             <div class="form-col">
               <label>Sheet Width (inches)</label>
-              <input type="number" id="calc-width" value="18" step="0.1">
+              <input type="number" id="calc-width" value="" placeholder="18" step="0.1">
             </div>
             <div class="form-col">
               <label>Sheet Height (inches)</label>
-              <input type="number" id="calc-height" value="24" step="0.1">
+              <input type="number" id="calc-height" value="" placeholder="24" step="0.1">
             </div>
             <div class="form-col">
               <label>Press Machine</label>
@@ -729,9 +765,11 @@ let messages = [];
 let quotes = [];
 let currentCalculatedQuote = null;
 
+let lastQuoteReference = null;
+
 // Sets state for the deterministic calculator
 let calcSets = [
-  { id: 1, qty: 6000, setCount: 1, colours: 4, sides: 'single', customImpRate: 0, customMachRate: 0 }
+  { id: 1, qty: '', placeholderQty: 'e.g. 5,000', setCount: 1, placeholderSets: '1', colours: 4, sides: 'single', customImpRate: '', placeholderDiscount: 'Standard (1500)', customMachRate: 0 }
 ];
 
 const $ = id => document.getElementById(id);
@@ -974,8 +1012,10 @@ function calculateDeterministic(){
   const paperUnitCost = Number($('calc-papercost').value) || 0;
   
   const isCutSheet = $('btn-mode-cut').classList.contains('active');
-  let width = Number($('calc-width').value) || 18;
-  let height = Number($('calc-height').value) || 24;
+  const rawWidth = $('calc-width') ? $('calc-width').value : '';
+  const rawHeight = $('calc-height') ? $('calc-height').value : '';
+  let width = Number(rawWidth) || Number($('calc-width')?.placeholder) || (isCutSheet ? 24 : 18);
+  let height = Number(rawHeight) || Number($('calc-height')?.placeholder) || (isCutSheet ? 18 : 24);
   const machSelect = $('calc-mach-select').value;
   
   let machine = machSelect === 'auto' ? detectMachine(width, height) : machSelect;
@@ -985,6 +1025,38 @@ function calculateDeterministic(){
   const badge = $('detected-machine-badge');
   badge.textContent = `Machine: ${machine} (${width}"×${height}")`;
   badge.className = `badge ${machine === 'K3' ? 'badge-k3' : 'badge-k2'}`;
+
+  // If no print run quantity has been entered, stay in inactive Standby Mode
+  const totalPiecesEntered = calcSets.reduce((sum, s) => sum + (Number(s.qty) || 0), 0);
+  if(totalPiecesEntered <= 0){
+    badge.textContent = `Machine: ${machine} (Standby)`;
+    const dEl = $('docket');
+    if(dEl){
+      dEl.innerHTML = `
+        <div class="crop tl"></div><div class="crop tr"></div><div class="crop bl"></div><div class="crop br"></div>
+        <div class="empty" style="padding:28px 10px;">
+          <div style="font-size:24px;margin-bottom:8px;">📝</div>
+          <div style="font-weight:600;color:var(--paper);font-size:14px;margin-bottom:4px;">New Quote Ready (Standby)</div>
+          <div style="color:var(--muted);font-size:12px;line-height:1.5;">Enter quantity and job details on the left to calculate live quotation.</div>
+        </div>
+      `;
+    }
+    const waEl = $('whatsapp-preview');
+    if(waEl){
+      waEl.textContent = 'Quotation will appear here once job details & quantity are entered...';
+    }
+    const bEl = $('calc-breakdown');
+    if(bEl){
+      bEl.innerHTML = `
+        <div class="h"><span>Calculation Working & Formulas</span><span>Standby</span></div>
+        <div class="step" style="color:var(--muted);padding:12px 0;justify-content:center;border:none;">
+          <span>⚡ Enter print run quantity above to begin live calculation</span>
+        </div>
+      `;
+    }
+    currentCalculatedQuote = null;
+    return;
+  }
 
   // Imposition ups
   let ups = Number($('calc-ups').value) || 1;
@@ -1604,11 +1676,11 @@ function renderSetsUI(){
       <div class="set-inputs-row">
         <div class="form-col">
           <label title="Quantity (pcs / sheets)">Quantity (pcs)</label>
-          <input type="number" data-id="${set.id}" data-f="qty" value="${set.qty}" min="1">
+          <input type="number" data-id="${set.id}" data-f="qty" value="${set.qty !== undefined && set.qty !== null ? set.qty : ''}" placeholder="${set.placeholderQty || 'e.g. 5,000'}" min="1">
         </div>
         <div class="form-col">
           <label style="color:var(--cyan);font-weight:600;" title="No. of Sets">No. of Sets</label>
-          <input type="number" data-id="${set.id}" data-f="setCount" value="${count}" min="1" step="1" class="mono" style="${count > 1 ? 'border-color:var(--cyan);color:var(--cyan);font-weight:700;' : ''}">
+          <input type="number" data-id="${set.id}" data-f="setCount" value="${set.setCount !== undefined && set.setCount !== null ? set.setCount : ''}" placeholder="${set.placeholderSets || '1'}" min="1" step="1" class="mono" style="${count > 1 ? 'border-color:var(--cyan);color:var(--cyan);font-weight:700;' : ''}">
         </div>
         <div class="form-col">
           <label title="Colours">Colours</label>
@@ -1635,7 +1707,7 @@ function renderSetsUI(){
         </div>
         <div class="form-col">
           <label title="Discount Impression Rate">Discount Rate</label>
-          <input type="number" data-id="${set.id}" data-f="customImpRate" value="${set.customImpRate||''}" placeholder="Standard (1500)">
+          <input type="number" data-id="${set.id}" data-f="customImpRate" value="${set.customImpRate||''}" placeholder="${set.placeholderDiscount || 'Standard (1500)'}">
         </div>
       </div>
     `;
@@ -1648,15 +1720,18 @@ function renderSetsUI(){
       const f = e.target.dataset.f;
       const targetSet = calcSets.find(s => s.id === id);
       if(targetSet){
-        if(f === 'sides'){
+        if(f === 'qty'){
+          targetSet.qty = e.target.value === '' ? '' : (Number(e.target.value) || 0);
+        } else if(f === 'sides'){
           targetSet[f] = e.target.value;
         } else if(f === 'setCount'){
           const val = parseInt(e.target.value, 10);
-          targetSet[f] = (!isNaN(val) && val >= 1) ? val : 1;
+          targetSet[f] = (!isNaN(val) && val >= 1) ? val : (e.target.value === '' ? '' : 1);
           const headSpan = e.target.closest('.set-box')?.querySelector('.set-head span');
           if(headSpan){
             const sIdx = calcSets.findIndex(s => s.id === id) + 1;
-            headSpan.innerHTML = `Set ${sIdx}${targetSet.setCount > 1 ? ` &mdash; <span style="color:var(--cyan);font-weight:600;">${targetSet.setCount} Sets</span>` : ''}`;
+            const actualCount = Math.max(1, Number(targetSet.setCount) || 1);
+            headSpan.innerHTML = `Set ${sIdx}${actualCount > 1 ? ` &mdash; <span style="color:var(--cyan);font-weight:600;">${actualCount} Sets</span>` : ''}`;
           }
           if(targetSet.setCount > 1){
             e.target.style.borderColor = 'var(--cyan)';
@@ -1685,8 +1760,10 @@ function renderSetsUI(){
               sel.appendChild(opt);
             }
           }
+        } else if(f === 'customImpRate'){
+          targetSet.customImpRate = e.target.value === '' ? '' : (Number(e.target.value) || 0);
         } else {
-          targetSet[f] = Number(e.target.value) || 0;
+          targetSet[f] = e.target.value === '' ? '' : (Number(e.target.value) || 0);
         }
         calculateDeterministic();
       }
@@ -1749,6 +1826,8 @@ function setupCalcEvents(){
     $('btn-mode-cut').classList.remove('active');
     $('calc-preset').parentElement.style.display = 'flex';
     $('col-ups').style.display = 'flex';
+    if(!$('calc-width').value) $('calc-width').placeholder = '18';
+    if(!$('calc-height').value) $('calc-height').placeholder = '24';
     updatePresetDimensions();
     calculateDeterministic();
   });
@@ -1758,6 +1837,8 @@ function setupCalcEvents(){
     $('btn-mode-finished').classList.remove('active');
     $('calc-preset').parentElement.style.display = 'none';
     $('col-ups').style.display = 'none';
+    if(!$('calc-width').value) $('calc-width').placeholder = '24';
+    if(!$('calc-height').value) $('calc-height').placeholder = '18';
     calculateDeterministic();
   });
 
@@ -1788,6 +1869,195 @@ function setupCalcEvents(){
     navigator.clipboard.writeText(text);
     showToast('WhatsApp quote copied!');
   });
+
+  // New Quote & Previous Quote Reference Handlers
+  $('btn-new-quote')?.addEventListener('click', startNewQuote);
+  $('btn-restore-prev')?.addEventListener('click', restorePreviousQuote);
+  $('btn-dismiss-prev')?.addEventListener('click', () => {
+    const el = $('prev-quote-reference');
+    if(el) el.style.display = 'none';
+  });
+}
+
+// ==================== NEW QUOTE & INACTIVE REFERENCE SYSTEM ====================
+function captureCurrentAsReference(){
+  const client = ($('calc-client')?.value || '').trim();
+  const job = ($('calc-jobname')?.value || '').trim();
+  const material = $('calc-material')?.value || 'Art paper';
+  const paperSource = $('calc-papersource')?.value || 'client';
+  const paperCost = $('calc-papercost')?.value || '25';
+  const isCut = $('btn-mode-cut')?.classList.contains('active') || false;
+  const rawWidth = $('calc-width')?.value || '';
+  const rawHeight = $('calc-height')?.value || '';
+  const width = rawWidth || $('calc-width')?.placeholder || (isCut ? '24' : '18');
+  const height = rawHeight || $('calc-height')?.placeholder || (isCut ? '18' : '24');
+  const machSelect = $('calc-mach-select')?.value || 'auto';
+  const ups = $('calc-ups')?.value || '8';
+  const sets = JSON.parse(JSON.stringify(calcSets || []));
+  const total = currentCalculatedQuote ? currentCalculatedQuote.total : null;
+  const totalSheets = sets.reduce((sum, s) => sum + ((Number(s.qty) || 0) * (Number(s.setCount) || 1)), 0);
+
+  if(client || job || totalSheets > 0 || currentCalculatedQuote){
+    lastQuoteReference = {
+      clientName: client,
+      jobName: job,
+      material,
+      paperSource,
+      paperCost,
+      isCut,
+      width,
+      height,
+      machSelect,
+      ups,
+      sets,
+      total,
+      ts: Date.now()
+    };
+  }
+}
+
+function updatePrevQuoteBanner(){
+  const banner = $('prev-quote-reference');
+  const summaryEl = $('prev-quote-summary');
+  if(!banner || !summaryEl) return;
+
+  if(!lastQuoteReference){
+    banner.style.display = 'none';
+    return;
+  }
+
+  const p = lastQuoteReference;
+  const clientText = p.clientName || 'Customer';
+  const jobText = p.jobName ? ` &bull; ${escapeHtml(p.jobName)}` : '';
+  const sizeText = ` &bull; ${p.width}"&times;${p.height}" ${p.material || 'Art paper'}`;
+  
+  let setsDesc = '';
+  if(p.sets && p.sets.length > 0){
+    const s1 = p.sets[0];
+    const qtyText = s1.qty ? `${fmtNum(s1.qty)} pcs` : '';
+    const setCount = (Number(s1.setCount) || 1);
+    const setsText = setCount > 1 ? ` &times; ${setCount} Sets` : (p.sets.length > 1 ? ` (${p.sets.length} Sets)` : '');
+    const colText = `${s1.colours || 4}C`;
+    const sideText = s1.sides === 'single' ? 'Single' : s1.sides === 'wt' ? 'W&T' : 'F&B';
+    const discText = s1.customImpRate ? ` [Disc @ ${fmtNum(s1.customImpRate)}]` : '';
+    setsDesc = ` &bull; ${qtyText}${setsText} (${colText} ${sideText})${discText}`;
+  }
+
+  const totalText = p.total ? ` &bull; <b style="color:var(--yellow);">${fmt(p.total)}</b>` : '';
+
+  summaryEl.innerHTML = `<b>${escapeHtml(clientText)}</b>${jobText}${sizeText}${setsDesc}${totalText}`;
+  banner.style.display = 'flex';
+}
+
+function restorePreviousQuote(){
+  if(!lastQuoteReference) return;
+  const p = lastQuoteReference;
+
+  if($('calc-client')) $('calc-client').value = p.clientName || '';
+  if($('calc-jobname')) $('calc-jobname').value = p.jobName || '';
+  if($('calc-material')) $('calc-material').value = p.material || 'Art paper';
+  if($('calc-papersource')) $('calc-papersource').value = p.paperSource || 'client';
+  if($('calc-papercost')) $('calc-papercost').value = p.paperCost || '25';
+  
+  if(p.isCut){
+    $('btn-mode-cut')?.classList.add('active');
+    $('btn-mode-finished')?.classList.remove('active');
+    if($('calc-preset')?.parentElement) $('calc-preset').parentElement.style.display = 'none';
+    if($('col-ups')) $('col-ups').style.display = 'none';
+  } else {
+    $('btn-mode-finished')?.classList.add('active');
+    $('btn-mode-cut')?.classList.remove('active');
+    if($('calc-preset')?.parentElement) $('calc-preset').parentElement.style.display = 'flex';
+    if($('col-ups')) $('col-ups').style.display = 'flex';
+  }
+
+  if($('calc-width')) $('calc-width').value = p.width || '';
+  if($('calc-height')) $('calc-height').value = p.height || '';
+  if($('calc-mach-select')) $('calc-mach-select').value = p.machSelect || 'auto';
+  if($('calc-ups')) $('calc-ups').value = p.ups || '8';
+
+  if(p.sets && p.sets.length > 0){
+    calcSets = JSON.parse(JSON.stringify(p.sets));
+  }
+
+  handleConditionalUI();
+  renderSetsUI();
+  calculateDeterministic();
+  showToast('Previous quote restored!');
+}
+
+function startNewQuote(){
+  // 1. Capture current quote into reference
+  captureCurrentAsReference();
+  updatePrevQuoteBanner();
+
+  // 2. Clear all active inputs but preserve visible inactive placeholders
+  if($('calc-client')){
+    const prevC = lastQuoteReference?.clientName;
+    $('calc-client').value = '';
+    $('calc-client').placeholder = prevC ? `Previous: ${prevC}` : 'e.g. Printora';
+  }
+
+  if($('calc-jobname')){
+    const prevJ = lastQuoteReference?.jobName;
+    $('calc-jobname').value = '';
+    $('calc-jobname').placeholder = prevJ ? `Previous: ${prevJ}` : 'e.g. Label Print';
+  }
+
+  if($('calc-material')) $('calc-material').value = 'Art paper';
+  if($('calc-papersource')) $('calc-papersource').value = 'client';
+  if($('calc-papercost')) $('calc-papercost').value = '25';
+
+  // Sizing: clear active values, keep ghost dimensions in placeholder
+  const isCut = $('btn-mode-cut')?.classList.contains('active');
+  if($('calc-width')){
+    const prevW = lastQuoteReference?.width;
+    $('calc-width').value = '';
+    $('calc-width').placeholder = prevW ? String(prevW) : (isCut ? '24' : '18');
+  }
+  if($('calc-height')){
+    const prevH = lastQuoteReference?.height;
+    $('calc-height').value = '';
+    $('calc-height').placeholder = prevH ? String(prevH) : (isCut ? '18' : '24');
+  }
+  if($('calc-mach-select')) $('calc-mach-select').value = 'auto';
+
+  // Finishing checkboxes: uncheck all to avoid unwanted cost carryover
+  if($('calc-chk-cut')) $('calc-chk-cut').checked = false;
+  if($('calc-chk-lam')) $('calc-chk-lam').checked = false;
+  if($('calc-chk-fold')) $('calc-chk-fold').checked = false;
+  if($('calc-chk-binding')) $('calc-chk-binding').checked = false;
+  if($('calc-chk-design')) $('calc-chk-design').checked = false;
+  if($('calc-chk-labour')) $('calc-chk-labour').checked = false;
+  if($('calc-chk-overhead')) $('calc-chk-overhead').checked = false;
+  if($('calc-chk-margin')) $('calc-chk-margin').checked = false;
+  if($('calc-identical-repeat')) $('calc-identical-repeat').checked = false;
+  if($('calc-use-tiers')) $('calc-use-tiers').checked = true;
+
+  // 3. Reset sets to clean single set in standby (NO discount rate, NO multiple sets)
+  const prevSet = lastQuoteReference?.sets?.[0];
+  const prevQtyStr = prevSet?.qty ? fmtNum(prevSet.qty) : null;
+  const prevDiscStr = prevSet?.customImpRate ? `Previous: ${fmtNum(prevSet.customImpRate)}` : 'Standard (1500)';
+
+  calcSets = [
+    {
+      id: 1,
+      qty: '',
+      placeholderQty: prevQtyStr ? `Previous: ${prevQtyStr}` : 'e.g. 5,000',
+      setCount: '',
+      placeholderSets: '1',
+      colours: 4,
+      sides: 'single',
+      customImpRate: '',
+      placeholderDiscount: prevDiscStr,
+      customMachRate: 0
+    }
+  ];
+
+  handleConditionalUI();
+  renderSetsUI();
+  calculateDeterministic();
+  showToast('New quote started — previous values cleared!');
 }
 
 function updatePresetDimensions(){
@@ -1855,10 +2125,13 @@ function renderDocket(q){
     <div class="dtotal"><div>Total (rounded)</div><div>${fmt(q.total)}</div></div>
     <div class="dactions">
       <button class="primary" id="docket-save">💾 Save to History</button>
+      <button type="button" class="btn-newquote" id="docket-newquote" style="padding:7px 11px;">🔄 New Quote</button>
       <button id="docket-copy">📋 Copy Docket</button>
       <button id="docket-print">🖨️ Print Ticket</button>
     </div>
   `;
+
+  $('docket-newquote')?.addEventListener('click', startNewQuote);
 
   $('docket-save').addEventListener('click', async ()=>{
     const quoteToSave = {...q, ts: Date.now()};
