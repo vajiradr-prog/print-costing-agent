@@ -95,19 +95,20 @@
   /* Calculator View */
   .calc-container{padding:16px;display:flex;flex-direction:column;gap:14px;}
   .calc-card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px;}
-  .calc-card-title{font-family:'Space Grotesk';font-size:12.5px;font-weight:600;color:var(--yellow);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+  .calc-card-title{font-family:'Space Grotesk';font-size:12.5px;font-weight:600;color:var(--yellow);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
   .badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:'IBM Plex Mono';font-weight:600;text-transform:uppercase;}
   .badge-k3{background:rgba(34,184,196,0.18);color:var(--cyan);border:1px solid var(--cyan);}
   .badge-k2{background:rgba(214,51,108,0.18);color:var(--magenta);border:1px solid var(--magenta);}
   .badge-warn{background:rgba(224,85,74,0.18);color:var(--danger);border:1px solid var(--danger);}
 
-  .form-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:10px;}
-  .form-col{display:flex;flex-direction:column;gap:4px;}
+  .form-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:12px;margin-bottom:10px;}
+  .form-col{display:flex;flex-direction:column;gap:4px;min-width:0;}
   .form-col label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:500;}
   .form-col input, .form-col select{
     background:var(--panel);border:1px solid var(--line);color:var(--paper);border-radius:6px;
-    padding:7px 9px;font-size:13px;font-family:'Inter';
+    padding:7px 9px;font-size:13px;font-family:'Inter';width:100%;max-width:100%;box-sizing:border-box;min-width:0;
   }
+  .form-col select{text-overflow:ellipsis;white-space:nowrap;overflow:hidden;}
   .form-col input[type="number"], .form-col input.mono{font-family:'IBM Plex Mono';}
   .form-col input:focus, .form-col select:focus{outline:none;border-color:var(--cyan);}
   
@@ -124,7 +125,7 @@
   .set-del{background:transparent;border:none;color:var(--danger);font-size:16px;cursor:pointer;padding:0 4px;}
   .set-inputs-row{
     display:grid;
-    grid-template-columns: minmax(75px, 1.2fr) 72px minmax(96px, 1.1fr) minmax(120px, 1.4fr) minmax(85px, 1.15fr);
+    grid-template-columns: minmax(70px, 1.2fr) minmax(60px, 0.9fr) minmax(90px, 1.1fr) minmax(115px, 1.4fr) minmax(80px, 1.1fr);
     gap:7px;
     align-items:flex-end;
   }
@@ -133,6 +134,7 @@
     display:flex;
     flex-direction:column;
     gap:4px;
+    grid-column:auto;
   }
   .set-inputs-row .form-col label{
     font-size:10px;
@@ -263,6 +265,65 @@
   .toast{position:fixed;bottom:24px;right:24px;background:var(--cyan);color:#0a2226;padding:10px 18px;border-radius:8px;font-weight:600;font-size:13px;font-family:'Space Grotesk';box-shadow:0 8px 24px rgba(0,0,0,0.5);opacity:0;transform:translateY(10px);transition:all .2s ease;pointer-events:none;z-index:99;}
   .toast.show{opacity:1;transform:translateY(0);}
 
+  /* Responsive Mobile Stylesheet (Phones & Small Viewports) */
+  @media (max-width: 680px){
+    body{overflow-x:hidden;}
+    .wrap{max-width:100%;padding:10px 10px 40px;overflow-x:hidden;}
+    .head{padding:10px 12px;margin-bottom:12px;gap:8px;}
+    .headbtns{width:100%;justify-content:flex-end;flex-wrap:wrap;}
+    .calc-container{padding:10px;gap:10px;}
+    .calc-card{padding:10px;}
+    .calc-card-title{flex-wrap:wrap;gap:6px;}
+    .prev-quote-banner{flex-wrap:wrap;}
+    .set-box{padding:10px 8px;margin-bottom:8px;}
+    
+    /* 2-Row Responsive Layout for Sets on Mobile:
+       Row 1: Quantity (pcs) | No. of Sets | Colours
+       Row 2: Printing Sides (spans 2 cols) | Discount Rate (col 3) */
+    .set-inputs-row{
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 10px 7px;
+      align-items: flex-end;
+    }
+    .set-inputs-row .set-col-qty{
+      grid-column: 1;
+    }
+    .set-inputs-row .set-col-sets{
+      grid-column: 2;
+    }
+    .set-inputs-row .set-col-colours{
+      grid-column: 3;
+    }
+    .set-inputs-row .set-col-sides{
+      grid-column: 1 / span 2;
+    }
+    .set-inputs-row .set-col-discount{
+      grid-column: 3;
+    }
+    .set-inputs-row .form-col label{
+      font-size: 10.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .set-inputs-row .form-col input,
+    .set-inputs-row .form-col select{
+      font-size: 13px;
+      height: 36px;
+      padding: 6px 8px;
+    }
+    
+    .check-grid{grid-template-columns: 1fr;}
+    .pill-btn{padding: 6px 4px; font-size: 10.5px;}
+    .docket{padding: 10px; font-size: 11.5px; overflow-x: auto;}
+    .whatsapp-card{margin-top: 12px; padding: 10px;}
+    .whatsapp-box{font-size: 11.5px; padding: 8px 10px;}
+    .settingsgrid{grid-template-columns: 1fr;}
+    .modal{padding: 16px 12px; width: 96%;}
+    .rcrow{grid-template-columns: 1.4fr 1fr 0.9fr 24px; gap: 4px;}
+    .rchead{grid-template-columns: 1.4fr 1fr 0.9fr 24px; gap: 4px;}
+  }
+
   /* Print Stylesheet */
   @media print {
     body { background: #fff !important; color: #000 !important; }
@@ -366,26 +427,38 @@
             </div>
           </div>
           <div class="form-row">
-            <div class="form-col">
-              <label>Material Type</label>
-              <select id="calc-material">
-                <option value="Art paper" selected>Art paper (24"x36" full sheet)</option>
-                <option value="Ivory board">Ivory board (31"x43" full sheet)</option>
-                <option value="Art board">Art board (25"x40" full sheet)</option>
-                <option value="Sticker paper">Sticker paper</option>
-                <option value="Bond paper">Bond paper (A4 / 80gsm)</option>
-              </select>
+            <div class="form-col" id="col-material" style="min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <label style="margin:0;">Material Type</label>
+                <button type="button" id="btn-toggle-custom-material" class="btn-xs" style="padding:1px 6px;font-size:10px;line-height:1.4;" title="Type a new material manually">✏️ Type New</button>
+              </div>
+              <div id="material-select-wrap" style="width:100%;min-width:0;">
+                <select id="calc-material" style="width:100%;min-width:0;">
+                  <option value="Art paper" selected>Art paper (24"x36" full sheet)</option>
+                  <option value="Ivory board">Ivory board (31"x43" full sheet)</option>
+                  <option value="Art board">Art board (25"x40" full sheet)</option>
+                  <option value="Sticker paper">Sticker paper</option>
+                  <option value="Bond paper">Bond paper (A4 / 80gsm)</option>
+                  <option value="__custom__">➕ + Type New Material...</option>
+                </select>
+              </div>
+              <div id="material-custom-wrap" style="display:none;gap:4px;align-items:center;width:100%;box-sizing:border-box;">
+                <input type="text" id="calc-material-custom-input" list="material-datalist" placeholder="Type new material (e.g. NCR paper, Kraft)..." style="flex:1;min-width:0;">
+                <button type="button" id="btn-save-custom-material" class="btn-xs" style="background:var(--cyan);color:#0a2226;font-weight:700;padding:6px 10px;white-space:nowrap;">✓ Use & Save</button>
+                <button type="button" id="btn-cancel-custom-material" class="btn-xs" style="padding:6px 8px;white-space:nowrap;" title="Back to list">✕</button>
+              </div>
+              <datalist id="material-datalist"></datalist>
             </div>
-            <div class="form-col">
+            <div class="form-col" style="min-width:0;">
               <label>Paper Sourcing</label>
-              <select id="calc-papersource">
+              <select id="calc-papersource" style="width:100%;min-width:0;">
                 <option value="client" selected>Client Supplied (Default — Plates & Print only)</option>
                 <option value="harshana">Harshana Printers Supplied (Include paper cost)</option>
               </select>
             </div>
-            <div class="form-col" id="col-papercost" style="display:none;">
+            <div class="form-col" id="col-papercost" style="display:none;min-width:0;">
               <label>Paper Cost / Full Sheet (LKR)</label>
-              <input type="number" id="calc-papercost" value="25" min="0">
+              <input type="number" id="calc-papercost" value="25" min="0" style="width:100%;min-width:0;">
             </div>
           </div>
         </div>
@@ -749,11 +822,11 @@ const DEFAULT_MACHINES = [
   {name:'K2', size:"maximum sheet size 24in x 37in — runs press sheets larger than K3's max (above 24in x 18in) up to 24in x 37in"}
 ];
 const DEFAULT_MATERIALS = [
-  {name:'Art paper', size:'24in x 36in full sheet — matches K2 exactly, no trimming needed'},
-  {name:'Ivory board', size:'31in x 43in full sheet — must be cut down to fit K2 max feed (25in x 37in) before printing'},
-  {name:'Art board', size:'25in x 40in full sheet — trimmed slightly to fit K2 max feed (25in x 37in) before printing'},
-  {name:'Sticker paper', size:'20in x 30in full sheet'},
-  {name:'Bond paper', size:'A4 standard cut sheet'}
+  {name:'Art paper', size:'24"x36" full sheet'},
+  {name:'Ivory board', size:'31"x43" full sheet'},
+  {name:'Art board', size:'25"x40" full sheet'},
+  {name:'Sticker paper', size:''},
+  {name:'Bond paper', size:'A4 / 80gsm'}
 ];
 
 // App State
@@ -1674,15 +1747,15 @@ function renderSetsUI(){
         ${calcSets.length > 1 ? `<button type="button" class="set-del" data-delset="${set.id}">&times;</button>` : ''}
       </div>
       <div class="set-inputs-row">
-        <div class="form-col">
+        <div class="form-col set-col-qty">
           <label title="Quantity (pcs / sheets)">Quantity (pcs)</label>
           <input type="number" data-id="${set.id}" data-f="qty" value="${set.qty !== undefined && set.qty !== null ? set.qty : ''}" placeholder="${set.placeholderQty || 'e.g. 5,000'}" min="1">
         </div>
-        <div class="form-col">
+        <div class="form-col set-col-sets">
           <label style="color:var(--cyan);font-weight:600;" title="No. of Sets">No. of Sets</label>
           <input type="number" data-id="${set.id}" data-f="setCount" value="${set.setCount !== undefined && set.setCount !== null ? set.setCount : ''}" placeholder="${set.placeholderSets || '1'}" min="1" step="1" class="mono" style="${count > 1 ? 'border-color:var(--cyan);color:var(--cyan);font-weight:700;' : ''}">
         </div>
-        <div class="form-col">
+        <div class="form-col set-col-colours">
           <label title="Colours">Colours</label>
           <div style="display:flex;gap:3px;align-items:center;">
             <input type="number" data-id="${set.id}" data-f="colours-input" value="${set.colours}" min="1" max="12" step="1" class="mono" style="width:38px;min-width:34px;padding:6px 2px;text-align:center;font-weight:600;" title="Type number of colours">
@@ -1697,7 +1770,7 @@ function renderSetsUI(){
             </select>
           </div>
         </div>
-        <div class="form-col">
+        <div class="form-col set-col-sides">
           <label title="Printing Sides">Printing Sides</label>
           <select data-id="${set.id}" data-f="sides">
             <option value="single" ${set.sides==='single'?'selected':''}>Single Side</option>
@@ -1705,7 +1778,7 @@ function renderSetsUI(){
             <option value="fb" ${set.sides==='fb'?'selected':''}>Both Sides (F&B)</option>
           </select>
         </div>
-        <div class="form-col">
+        <div class="form-col set-col-discount">
           <label title="Discount Impression Rate">Discount Rate</label>
           <input type="number" data-id="${set.id}" data-f="customImpRate" value="${set.customImpRate||''}" placeholder="${set.placeholderDiscount || 'Standard (1500)'}">
         </div>
@@ -1877,6 +1950,152 @@ function setupCalcEvents(){
     const el = $('prev-quote-reference');
     if(el) el.style.display = 'none';
   });
+
+  // Custom Material Handlers
+  $('calc-material')?.addEventListener('change', e => {
+    if(e.target.value === '__custom__'){
+      openCustomMaterialInput();
+    } else {
+      calculateDeterministic();
+    }
+  });
+
+  $('btn-toggle-custom-material')?.addEventListener('click', () => {
+    const customWrap = $('material-custom-wrap');
+    if(customWrap && customWrap.style.display !== 'none'){
+      closeCustomMaterialInput();
+    } else {
+      openCustomMaterialInput();
+    }
+  });
+
+  $('btn-save-custom-material')?.addEventListener('click', saveAndUseCustomMaterial);
+  $('btn-cancel-custom-material')?.addEventListener('click', closeCustomMaterialInput);
+
+  $('calc-material-custom-input')?.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      saveAndUseCustomMaterial();
+    } else if(e.key === 'Escape'){
+      e.preventDefault();
+      closeCustomMaterialInput();
+    }
+  });
+}
+
+// ==================== MATERIAL SELECTION & CUSTOM MANAGEMENT ====================
+function renderMaterialSelect(selectedVal){
+  const sel = $('calc-material');
+  const datalist = $('material-datalist');
+  if(!sel) return;
+
+  const currentVal = selectedVal !== undefined ? selectedVal : (sel.value || 'Art paper');
+  sel.innerHTML = '';
+  if(datalist) datalist.innerHTML = '';
+
+  function formatMaterialLabel(m){
+    let name = m.name || '';
+    let size = m.size || '';
+    if(name === 'Art paper' && (!size || size.includes('matches K2'))) size = '24"x36" full sheet';
+    if(name === 'Ivory board' && (!size || size.includes('must be cut'))) size = '31"x43" full sheet';
+    if(name === 'Art board' && (!size || size.includes('trimmed slightly'))) size = '25"x40" full sheet';
+    if(name === 'Sticker paper' && (!size || size.includes('20in x 30in'))) size = '';
+    if(name === 'Bond paper' && (!size || size.includes('standard cut sheet'))) size = 'A4 / 80gsm';
+    return size ? `${name} (${size})` : name;
+  }
+
+  materials.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.name;
+    const label = formatMaterialLabel(m);
+    opt.textContent = label;
+    sel.appendChild(opt);
+
+    if(datalist){
+      const dOpt = document.createElement('option');
+      dOpt.value = m.name;
+      datalist.appendChild(dOpt);
+    }
+  });
+
+  // Add the option to type new
+  const customOpt = document.createElement('option');
+  customOpt.value = '__custom__';
+  customOpt.textContent = '➕ + Type New Material...';
+  customOpt.style.color = 'var(--cyan)';
+  customOpt.style.fontWeight = '600';
+  sel.appendChild(customOpt);
+
+  // Set selection
+  let found = false;
+  for(let i = 0; i < sel.options.length; i++){
+    if(sel.options[i].value === currentVal || sel.options[i].value.toLowerCase() === (currentVal || '').toLowerCase()){
+      sel.selectedIndex = i;
+      found = true;
+      break;
+    }
+  }
+
+  // If currentVal was something custom not yet in list, add it
+  if(!found && currentVal && currentVal !== '__custom__'){
+    const opt = document.createElement('option');
+    opt.value = currentVal;
+    opt.textContent = currentVal;
+    opt.selected = true;
+    sel.insertBefore(opt, customOpt);
+  }
+}
+
+function openCustomMaterialInput(){
+  const selectWrap = $('material-select-wrap');
+  const customWrap = $('material-custom-wrap');
+  const customInp = $('calc-material-custom-input');
+  if(!selectWrap || !customWrap || !customInp) return;
+
+  selectWrap.style.display = 'none';
+  customWrap.style.display = 'flex';
+  customInp.value = '';
+  customInp.focus();
+}
+
+function closeCustomMaterialInput(){
+  const selectWrap = $('material-select-wrap');
+  const customWrap = $('material-custom-wrap');
+  const sel = $('calc-material');
+  if(!selectWrap || !customWrap) return;
+
+  customWrap.style.display = 'none';
+  selectWrap.style.display = 'block';
+  if(sel && sel.value === '__custom__'){
+    sel.value = materials[0]?.name || 'Art paper';
+  }
+}
+
+async function saveAndUseCustomMaterial(){
+  const customInp = $('calc-material-custom-input');
+  if(!customInp) return;
+  const newName = customInp.value.trim();
+  if(!newName){
+    closeCustomMaterialInput();
+    return;
+  }
+
+  // Check if already in materials
+  const existing = materials.find(m => m.name.trim().toLowerCase() === newName.toLowerCase());
+  if(!existing){
+    materials.push({ name: newName, size: '' });
+    // Persist to storage & cloud
+    await storeSet('print-agent-settings', { rateCard, settings, machines, materials });
+    if(typeof cloudSave === 'function' && typeof getSyncCode === 'function' && getSyncCode()){
+      cloudSave('print-agent-settings', { rateCard, settings, machines, materials });
+    }
+    if(typeof renderMatRows === 'function') renderMatRows();
+    showToast(`Material "${newName}" saved for future quotes!`);
+  }
+
+  renderMaterialSelect(existing ? existing.name : newName);
+  closeCustomMaterialInput();
+  calculateDeterministic();
 }
 
 // ==================== NEW QUOTE & INACTIVE REFERENCE SYSTEM ====================
@@ -1955,7 +2174,13 @@ function restorePreviousQuote(){
 
   if($('calc-client')) $('calc-client').value = p.clientName || '';
   if($('calc-jobname')) $('calc-jobname').value = p.jobName || '';
-  if($('calc-material')) $('calc-material').value = p.material || 'Art paper';
+  if(p.material){
+    renderMaterialSelect(p.material);
+  } else if($('calc-material')){
+    $('calc-material').value = 'Art paper';
+  }
+  closeCustomMaterialInput();
+
   if($('calc-papersource')) $('calc-papersource').value = p.paperSource || 'client';
   if($('calc-papercost')) $('calc-papercost').value = p.paperCost || '25';
   
@@ -2004,7 +2229,9 @@ function startNewQuote(){
     $('calc-jobname').placeholder = prevJ ? `Previous: ${prevJ}` : 'e.g. Label Print';
   }
 
-  if($('calc-material')) $('calc-material').value = 'Art paper';
+  renderMaterialSelect('Art paper');
+  closeCustomMaterialInput();
+
   if($('calc-papersource')) $('calc-papersource').value = 'client';
   if($('calc-papercost')) $('calc-papercost').value = '25';
 
@@ -2245,12 +2472,14 @@ function renderMatRows(){
     inp.addEventListener('input', e=>{
       const i = +e.target.dataset.i, f = e.target.dataset.f;
       materials[i][f] = e.target.value;
+      renderMaterialSelect();
     });
   });
   wrap.querySelectorAll('button[data-delmat]').forEach(btn=>{
     btn.addEventListener('click', e=>{
       materials.splice(+e.target.dataset.delmat,1);
       renderMatRows();
+      renderMaterialSelect();
     });
   });
 }
@@ -2266,6 +2495,7 @@ $('btn-addmach').addEventListener('click', ()=>{
 $('btn-addmat').addEventListener('click', ()=>{
   materials.push({name:'New material', size:''});
   renderMatRows();
+  renderMaterialSelect();
 });
 
 // Update Model options based on selected AI Provider
@@ -2915,6 +3145,7 @@ async function loadAll(){
   renderRateRows();
   renderMachRows();
   renderMatRows();
+  renderMaterialSelect();
 
   $('set-overhead').value = settings.overhead;
   $('set-margin').value = settings.margin;
